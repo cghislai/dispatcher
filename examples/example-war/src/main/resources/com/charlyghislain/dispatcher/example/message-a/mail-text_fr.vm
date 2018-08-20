@@ -1,0 +1,3 @@
+Ceci est un communiqué de ${app.name} pour ${request.userName}.
+
+Votre requête est bien arrivée à ${request.requestPath}.

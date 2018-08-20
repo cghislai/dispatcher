@@ -1,0 +1,7 @@
+This is an example message for ${app.name} ${app.version}
+
+The request info I have are
+   path: ${request.requestPath}
+   user: ${request.userName}
+
+

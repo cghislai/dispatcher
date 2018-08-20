@@ -1,0 +1,3 @@
+<div style="background-color: black; color: white;">
+    © ${app.name} ${app.version} - See you soon
+</div>
