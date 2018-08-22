@@ -52,9 +52,9 @@
         <url>http://github.com/cghislai/dispatcher/tree/master</url>
     </scm>
 
+
     <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <typescript.api.npm.version>${project.version}</typescript.api.npm.version>
     </properties>
 
     <dependencyManagement>
@@ -259,7 +259,7 @@
                         <mapDate>asString</mapDate>
                         <generateNpmPackageJson>true</generateNpmPackageJson>
                         <npmName>@charlyghislain/${project.artifactId}</npmName>
-                        <npmVersion>${project.version}</npmVersion>
+                        <npmVersion>${typescript.api.npm.version}</npmVersion>
                     </configuration>
                 </plugin>
 
@@ -290,7 +290,7 @@
                         <configuration>
                             <serverId>ossrh</serverId>
                             <nexusUrl>https://oss.sonatype.org/</nexusUrl>
-                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                            <autoReleaseAfterClose>true</autoReleaseAfterClose>
                         </configuration>
                     </plugin>
 
