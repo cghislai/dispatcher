@@ -4,21 +4,26 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>dispatcher-parent</artifactId>
-        <groupId>com.charlyghislain</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <groupId>com.charlyghislain.dispatcher</groupId>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>dispatcher-management</artifactId>
     <packaging>war</packaging>
 
+
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Management rest resources</description>
+    <url>https://github.com/cghislai/authenticator</url>
+
     <dependencies>
         <dependency>
-            <groupId>com.charlyghislain</groupId>
+            <groupId>com.charlyghislain.dispatcher</groupId>
             <artifactId>dispatcher-management-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.charlyghislain</groupId>
+            <groupId>com.charlyghislain.dispatcher</groupId>
             <artifactId>dispatcher-api</artifactId>
         </dependency>
 
@@ -55,16 +60,5 @@
             <artifactId>javax.mail-api</artifactId>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-war-plugin</artifactId>
-                <configuration>
-                    <attachClasses>true</attachClasses>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 
 </project>

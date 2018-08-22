@@ -44,7 +44,7 @@ public class ConfigConstants {
      * Relative path under which to look for resources, both in the class path and on the filesystem.
      */
     public static final String RESOURCES_BASE_DIR
-            = "com.charlyghislain.dispatcher.resourcesSubpath";
+            = "com.charlyghislain.dispatcher.resourcesBaseDir";
     public static final String RESOURCES_BASE_DIR_DEFAULT_VALUE
             = "";
 

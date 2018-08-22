@@ -4,35 +4,39 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>examples</artifactId>
-        <groupId>com.charlyghislain</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <groupId>com.charlyghislain.dispatcher</groupId>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>example-war</artifactId>
     <packaging>war</packaging>
 
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Examples application</description>
+    <url>https://github.com/cghislai/authenticator</url>
+
     <dependencies>
         <dependency>
-            <groupId>com.charlyghislain</groupId>
+            <groupId>com.charlyghislain.dispatcher</groupId>
             <artifactId>dispatcher</artifactId>
             <type>ejb</type>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>com.charlyghislain</groupId>
+            <groupId>com.charlyghislain.dispatcher</groupId>
             <artifactId>dispatcher-management</artifactId>
             <classifier>classes</classifier>
-            <version>1.0-SNAPSHOT</version>
+            <version>1.0.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
-            <groupId>com.charlyghislain</groupId>
+            <groupId>com.charlyghislain.dispatcher</groupId>
             <artifactId>dispatcher-api</artifactId>
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>com.charlyghislain</groupId>
+            <groupId>com.charlyghislain.dispatcher</groupId>
             <artifactId>dispatcher-management-api</artifactId>
             <scope>compile</scope>
         </dependency>
@@ -63,7 +67,7 @@
 
     <profiles>
         <profile>
-            <id>example-app</id>
+            <id>example</id>
             <dependencies>
                 <dependency>
                     <groupId>org.slf4j</groupId>

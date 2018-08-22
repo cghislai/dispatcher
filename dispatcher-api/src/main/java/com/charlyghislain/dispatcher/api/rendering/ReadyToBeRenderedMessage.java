@@ -7,6 +7,7 @@ import com.charlyghislain.dispatcher.api.message.DispatcherMessage;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import javax.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -22,9 +23,9 @@ public class ReadyToBeRenderedMessage {
     @NotNull
     private Set<DispatchingOption> dispatchingOptions;
     @NotNull
-    private Set<String> referencedResources;
+    private Set<String> referencedResources = new HashSet<>();
     @NotNull
-    private RenderingType renderingType;
+    private RenderingType renderingType = RenderingType.MAIL;
 
     @Nullable
     private MailHeadersTemplate mailHeadersTemplate;

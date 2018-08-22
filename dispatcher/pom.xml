@@ -4,13 +4,17 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>dispatcher-parent</artifactId>
-        <groupId>com.charlyghislain</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <groupId>com.charlyghislain.dispatcher</groupId>
+        <version>1.0.0-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>dispatcher</artifactId>
     <packaging>ejb</packaging>
+
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Core services</description>
+    <url>https://github.com/cghislai/authenticator</url>
 
     <dependencies>
         <dependency>
@@ -24,7 +28,7 @@
             <version>2.0</version>
         </dependency>
         <dependency>
-            <groupId>com.charlyghislain</groupId>
+            <groupId>com.charlyghislain.dispatcher</groupId>
             <artifactId>dispatcher-api</artifactId>
         </dependency>
 

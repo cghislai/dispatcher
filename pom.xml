@@ -4,10 +4,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.charlyghislain</groupId>
+    <groupId>com.charlyghislain.dispatcher</groupId>
     <artifactId>dispatcher-parent</artifactId>
     <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
+
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>A message templating and dispatcher</description>
+    <url>https://github.com/cghislai/authenticator</url>
 
     <modules>
         <module>dispatcher</module>
@@ -17,25 +21,54 @@
         <module>examples</module>
     </modules>
 
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </snapshotRepository>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>http://www.opensource.org/licenses/mit-license.php</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Charles Ghislain</name>
+            <email>charlyghislain@gmail.com</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/cghislai/dispatcher.git</connection>
+        <developerConnection>scm:git:ssh://github.com:cghislai/dispatcher.git</developerConnection>
+        <url>http://github.com/cghislai/dispatcher/tree/master</url>
+    </scm>
 
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
-
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>com.charlyghislain</groupId>
+                <groupId>com.charlyghislain.dispatcher</groupId>
                 <artifactId>dispatcher-api</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>1.0.0-SNAPSHOT</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
-                <groupId>com.charlyghislain</groupId>
+                <groupId>com.charlyghislain.dispatcher</groupId>
                 <artifactId>dispatcher-management-api</artifactId>
-                <version>1.0-SNAPSHOT</version>
+                <version>1.0.0-SNAPSHOT</version>
                 <scope>provided</scope>
             </dependency>
 
@@ -146,6 +179,7 @@
                     <artifactId>maven-war-plugin</artifactId>
                     <version>3.0.0</version>
                     <configuration>
+                        <attachClasses>true</attachClasses>
                     </configuration>
                 </plugin>
                 <plugin>
@@ -155,7 +189,114 @@
                     <configuration>
                     </configuration>
                 </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>3.0.0</version>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-source-plugin</artifactId>
+                    <version>3.0.0</version>
+                    <executions>
+                        <execution>
+                            <id>attach-sources</id>
+                            <goals>
+                                <goal>jar-no-fork</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-gpg-plugin</artifactId>
+                    <version>1.5</version>
+                    <executions>
+                        <execution>
+                            <id>sign-artifacts</id>
+                            <phase>verify</phase>
+                            <goals>
+                                <goal>sign</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>cz.habarta.typescript-generator</groupId>
+                    <artifactId>typescript-generator-maven-plugin</artifactId>
+                    <version>2.5.423</version>
+                    <executions>
+                        <execution>
+                            <id>generate-api</id>
+                            <goals>
+                                <goal>generate</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <excludeClassPatterns>
+                            <classPattern>java.io.**</classPattern>
+                            <classPattern>java.lang.**</classPattern>
+                        </excludeClassPatterns>
+                        <jsonLibrary>jackson2</jsonLibrary>
+                        <outputFile>target/npm/index.d.ts</outputFile>
+                        <outputKind>module</outputKind>
+                        <outputFileType>declarationFile</outputFileType>
+                        <mapClasses>asInterfaces</mapClasses>
+                        <mapEnum>asEnum</mapEnum>
+                        <mapDate>asString</mapDate>
+                        <generateNpmPackageJson>true</generateNpmPackageJson>
+                        <npmName>@charlyghislain/${project.artifactId}</npmName>
+                        <npmVersion>${project.version}</npmVersion>
+                    </configuration>
+                </plugin>
+
             </plugins>
         </pluginManagement>
     </build>
+
+    <profiles>
+        <profile>
+            <id>ossrh-deploy</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-source-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                    </plugin>
+
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.7</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <serverId>ossrh</serverId>
+                            <nexusUrl>https://oss.sonatype.org/</nexusUrl>
+                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                        </configuration>
+                    </plugin>
+
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>
