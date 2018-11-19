@@ -22,6 +22,15 @@ public class DispatchingResult {
     @Nullable
     private String messageId;
 
+    public DispatchingResult() {
+    }
+
+    public DispatchingResult(@NotNull RenderingOption renderingOption, @NotNull DispatchingOption dispatchingOption, boolean success) {
+        this.renderingOption = renderingOption;
+        this.dispatchingOption = dispatchingOption;
+        this.success = success;
+    }
+
     public RenderingOption getRenderingOption() {
         return renderingOption;
     }

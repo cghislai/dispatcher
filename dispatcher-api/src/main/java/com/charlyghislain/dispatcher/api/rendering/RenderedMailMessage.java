@@ -5,6 +5,7 @@ import com.charlyghislain.dispatcher.api.message.MailAttachment;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -15,7 +16,7 @@ public class RenderedMailMessage implements RenderedMessageDispatchingOption {
     @NotNull
     private List<MailAttachment> mailAttachments = new ArrayList<>();
     @NotNull
-    private Map<RenderingOption, RenderedTemplate> renderedTemplates;
+    private Map<RenderingOption, RenderedTemplate> renderedTemplates = new HashMap<>();
 
 
     @Override

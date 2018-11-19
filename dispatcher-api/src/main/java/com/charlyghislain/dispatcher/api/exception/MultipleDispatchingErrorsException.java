@@ -5,25 +5,25 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class MultipleRenderingErrorsException extends MessageRenderingException {
+public class MultipleDispatchingErrorsException extends DispatcherException {
 
-    private List<MessageRenderingException> renderingExceptions = new ArrayList<>();
+    private List<Throwable> renderingExceptions = new ArrayList<>();
 
-    public MultipleRenderingErrorsException(String message) {
+    public MultipleDispatchingErrorsException(String message) {
         super(message);
     }
 
-    public MultipleRenderingErrorsException(String message, MessageRenderingException... causes) {
+    public MultipleDispatchingErrorsException(String message, Throwable... causes) {
         super(message);
         Arrays.stream(causes).forEach(renderingExceptions::add);
     }
 
-    public MultipleRenderingErrorsException(String message, List<MessageRenderingException> renderingExceptions) {
+    public MultipleDispatchingErrorsException(String message, List<? extends Throwable> errors) {
         super(message);
-        this.renderingExceptions = renderingExceptions;
+        this.renderingExceptions.addAll(errors);
     }
 
-    public List<MessageRenderingException> getRenderingExceptions() {
+    public List<Throwable> getRenderingExceptions() {
         return renderingExceptions;
     }
 
@@ -38,9 +38,9 @@ public class MultipleRenderingErrorsException extends MessageRenderingException 
         super.printStackTrace(s);
 
         int internalErrors = renderingExceptions.size();
-        s.println("MultiException:: " + internalErrors + "  internal rendering exceptions: ");
+        s.println("MultiException:: " + internalErrors + "  internal dispatching exceptions: ");
         for (int index = 0; index < internalErrors; index++) {
-            MessageRenderingException cause = renderingExceptions.get(index);
+            Throwable cause = renderingExceptions.get(index);
             s.println("  - " + index + ": " + cause.getMessage());
             cause.printStackTrace(s);
         }

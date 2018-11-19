@@ -1,6 +1,7 @@
 package com.charlyghislain.dispatcher.service;
 
 import com.charlyghislain.dispatcher.api.configuration.ConfigConstants;
+import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
 import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
 import com.charlyghislain.dispatcher.api.dispatching.DispatchingResult;
 import com.charlyghislain.dispatcher.api.exception.DispatcherException;
@@ -292,9 +293,7 @@ public class MailDispatcherService {
 
 
     private DispatchingResult createSuccessResult(String messageId, RenderingOption renderingOption) {
-        DispatchingResult dispatchingResult = new DispatchingResult();
-        dispatchingResult.setRenderingOption(renderingOption);
-        dispatchingResult.setSuccess(true);
+        DispatchingResult dispatchingResult = new DispatchingResult(renderingOption, DispatchingOption.MAIL, true);
         dispatchingResult.setDispatchedTime(LocalDateTime.now());
         dispatchingResult.setMessageId(messageId);
         return dispatchingResult;
@@ -303,9 +302,7 @@ public class MailDispatcherService {
 
     private DispatchingResult createErrorResult(RenderingOption renderingOption, Exception error) {
         String message = error.getMessage();
-        DispatchingResult dispatchingResult = new DispatchingResult();
-        dispatchingResult.setRenderingOption(renderingOption);
-        dispatchingResult.setSuccess(false);
+        DispatchingResult dispatchingResult = new DispatchingResult(renderingOption, DispatchingOption.MAIL, false);
         dispatchingResult.setError(error);
         dispatchingResult.setErrorMessage(message);
         return dispatchingResult;

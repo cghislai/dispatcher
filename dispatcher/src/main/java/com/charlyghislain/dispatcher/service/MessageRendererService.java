@@ -138,9 +138,10 @@ public class MessageRendererService implements MessageRenderer {
 
         List<DispatchingRenderingOption> dispatchingOptions = readyToBeRenderedMessage.getDispatchingRenderingOptionsByOrderOfPreference();
         boolean requireAllToRender = readyToBeRenderedMessage.isRequireAllDispatchingOptionToRender();
+        DispatcherMessage message = readyToBeRenderedMessage.getMessage();
         List<MessageRenderingException> optionsRenderingExceptions = new ArrayList<>();
 
-        RenderedMessage renderedMessage = new RenderedMessage(locale);
+        RenderedMessage renderedMessage = new RenderedMessage(locale, message);
         List<RenderedMessageDispatchingOption> renderedMessageDispatchingOptions = renderedMessage.getRenderedMessageDispatchingOptions();
         for (DispatchingRenderingOption dispatchingOption : dispatchingOptions) {
             try {
@@ -151,7 +152,7 @@ public class MessageRendererService implements MessageRenderer {
             }
         }
 
-        String messageName = readyToBeRenderedMessage.getMessage().getName();
+        String messageName = message.getName();
         String optionsNames = dispatchingOptions.stream().map(DispatchingRenderingOption::getDispatchingOption)
                 .map(Enum::name)
                 .collect(Collectors.joining(","));

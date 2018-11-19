@@ -2,7 +2,7 @@
 
 A message rendering / dispatching library.
 
-The goal is to handle the message rendering and dispatching logic, offering an simple API
+The goal is to handle the message rendering and dispatching logic, offering a simple API
 to make sure a communication message reaches its recipients, whatever language or communication channel preference
 they may have.
 
@@ -17,7 +17,7 @@ To make use of the library, the api must be provided to modules requiring it.
     <dependency>
         <groupId>com.charlyghislain.dispatcher</groupId>
         <artifactId>dispatcher-api</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>2.0.0-SNAPSHOT</version>
         <scope>provided</scope>
     </dependency>
 ```
@@ -27,12 +27,12 @@ The services and api must be available in the classpath of your deployments:
         <groupId>com.charlyghislain.dispatcher</groupId>
         <artifactId>dispatcher</artifactId>
         <type>ejb</type>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>2.0.0-SNAPSHOT</version>
     </dependency>
     <dependency>
         <groupId>com.charlyghislain.dispatcher</groupId>
         <artifactId>dispatcher-api</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>2.0.0-SNAPSHOT</version>
     </dependency>
 ```
 
@@ -44,12 +44,12 @@ considered alpha stage.
         <groupId>com.charlyghislain.dispatcher</groupId>
         <artifactId>dispatcher-management</artifactId>
         <classifier>classes</classifier> <!-- or <type>war</type> -->
-        <version>1.0.0-SNAPSHOT</version>
+        <version>2.0.0-SNAPSHOT</version>
     </dependency>
     <dependency>
         <groupId>com.charlyghislain.dispatcher</groupId>
         <artifactId>dispatcher-management-api</artifactId>
-        <version>1.0.0-SNAPSHOT</version>
+        <version>2.0.0-SNAPSHOT</version>
     </dependency>
 ```
 
@@ -163,13 +163,14 @@ public class AFirstMessage {
 ```
 Or provided in localized resource bundles properties:
 - `src/main/resources/com/example/a-first-message/MailHeaders_en.properties`
-```velocitymarkup
+```properties
 from=example@org
 subject=A first message
 ```
 Or provided as microprofile config entries, at a global level:
 ```properties
-com.charlyghislain.dispatcher.api.header.MailHeaders#from=example@myorg
+com.charlyghislain.dispatcher.api.header.MailHeaders#from=noreply@myorg
+com.charlyghislain.dispatcher.api.header.MailHeaders#bcc=sent-mails@myorg
 ```
 Or provided as microprofile config entries, at the message level:
 ```properties
@@ -180,7 +181,7 @@ Each header value will be resolved in the inverse order, so a value provided as 
 will override one provided at the message annotation level. Additionally, as you can see, values provided as config parameters
 may append a localization suffix, that will be resolved like for the template files.
 
-### Dispatch you message
+### Dispatch your message
 To dispatch your message, first you construct a ReadyToBeRenderedMessage instance and render it
 ```java
 List<TemplateContextObjects> contextObjects = templateContextsService.createTemplateContexts(message);

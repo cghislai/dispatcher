@@ -7,6 +7,7 @@ package com.charlyghislain.dispatcher.api.rendering;
  */
 public enum RenderingOption {
 
+    NONE(null),
     LONG_HTML("long-html"),
     LONG_TEXT("long-text"),
     SHORT_TEXT("short-text");

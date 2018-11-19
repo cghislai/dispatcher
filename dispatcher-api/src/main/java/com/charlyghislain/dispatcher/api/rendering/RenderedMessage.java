@@ -1,5 +1,7 @@
 package com.charlyghislain.dispatcher.api.rendering;
 
+import com.charlyghislain.dispatcher.api.message.DispatcherMessage;
+
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,10 +12,13 @@ public class RenderedMessage {
     @NotNull
     private final Locale renderedLocale;
     @NotNull
+    private final DispatcherMessage message;
+    @NotNull
     private final List<RenderedMessageDispatchingOption> renderedMessageDispatchingOptions = new ArrayList<>();
 
-    public RenderedMessage(@NotNull Locale renderedLocale) {
+    public RenderedMessage(@NotNull Locale renderedLocale, @NotNull DispatcherMessage message) {
         this.renderedLocale = renderedLocale;
+        this.message = message;
     }
 
     public Locale getRenderedLocale() {
@@ -22,5 +27,9 @@ public class RenderedMessage {
 
     public List<RenderedMessageDispatchingOption> getRenderedMessageDispatchingOptions() {
         return renderedMessageDispatchingOptions;
+    }
+
+    public DispatcherMessage getMessage() {
+        return message;
     }
 }
