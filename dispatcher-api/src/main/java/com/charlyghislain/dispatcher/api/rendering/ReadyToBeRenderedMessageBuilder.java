@@ -63,6 +63,10 @@ public class ReadyToBeRenderedMessageBuilder {
         return this;
     }
 
+    public ReadyToBeRenderedMessageBuilder withContext(Collection<TemplateContextObject> contextObjects) {
+        readyToBeRenderedMessage.getContextObjects().addAll(contextObjects);
+        return this;
+    }
 
     public ReadyToBeRenderedMessageBuilder forWebRendering() {
         readyToBeRenderedMessage.setRenderingMedia(RenderingMedia.WEB_PAGE);

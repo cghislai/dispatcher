@@ -16,4 +16,14 @@ public interface MessageDispatcher {
      * @return a DispatchedMessage containing the dispatching outcome.
      */
     DispatchedMessage dispatchMessage(RenderedMessage renderedMessage, boolean acceptFirstDispatchingOption);
+
+    /**
+     * Dispatch the message, accepting first success.
+     *
+     * @param renderedMessage
+     * @return
+     */
+    default DispatchedMessage dispatchMessage(RenderedMessage renderedMessage) {
+        return dispatchMessage(renderedMessage, true);
+    }
 }

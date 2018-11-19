@@ -124,20 +124,6 @@ public class DispatcherMessagesResourceController implements DispatcherMessagesR
         return streamRenderedExampleTemplate(name, wsDispatchingOption, httpHeaders);
     }
 
-    private StreamingOutput streamRenderedExampleTemplate(String name, WsDispatchingOption wsDispatchingOption, HttpHeaders httpHeaders) {
-        RenderingOption renderingOption = dispatchingOptionConverter.toDispatchingOption(wsDispatchingOption);
-        List<Locale> acceptableLanguages = localesService.getAcceptedLanguages(httpHeaders);
-        DispatcherMessage dispatcherMessage = messageResourcesService.findMessageByName(name)
-                .orElseThrow(() -> new DispatcherWebException(DispatcherWebError.MESSAGE_NOT_FOUND, "No message named " + name));
-        List<TemplateContextObject> exampleTemplateContexts = templateContextsService.createExampleTemplateContexts(dispatcherMessage);
-
-        try {
-            return multiLocaleMessageService.streamRenderedExampleTemplateForFirstMatchingLanguage(acceptableLanguages, dispatcherMessage, renderingOption, exampleTemplateContexts);
-        } catch (DispatcherException e) {
-            throw new DispatcherWebException(DispatcherWebError.TEMPLATE_RENDERING_ERROR, e.getMessage());
-        }
-    }
-
     @Override
     public List<String> getAvailableLocalesWithContent(String name, WsDispatchingOption wsDispatchingOption) {
         RenderingOption renderingOption = dispatchingOptionConverter.toDispatchingOption(wsDispatchingOption);
@@ -198,4 +184,19 @@ public class DispatcherMessagesResourceController implements DispatcherMessagesR
                 .map(wsMessageTemplateVariableConverter::toWsMessageTemplateVariable)
                 .collect(Collectors.toList());
     }
+
+    private StreamingOutput streamRenderedExampleTemplate(String name, WsDispatchingOption wsDispatchingOption, HttpHeaders httpHeaders) {
+        RenderingOption renderingOption = dispatchingOptionConverter.toDispatchingOption(wsDispatchingOption);
+        List<Locale> acceptableLanguages = localesService.getAcceptedLanguages(httpHeaders);
+        DispatcherMessage dispatcherMessage = messageResourcesService.findMessageByName(name)
+                .orElseThrow(() -> new DispatcherWebException(DispatcherWebError.MESSAGE_NOT_FOUND, "No message named " + name));
+        List<TemplateContextObject> exampleTemplateContexts = templateContextsService.createExampleTemplateContexts(dispatcherMessage);
+
+        try {
+            return multiLocaleMessageService.streamRenderedExampleTemplateForFirstMatchingLanguage(acceptableLanguages, dispatcherMessage, renderingOption, exampleTemplateContexts);
+        } catch (DispatcherException e) {
+            throw new DispatcherWebException(DispatcherWebError.TEMPLATE_RENDERING_ERROR, e.getMessage());
+        }
+    }
+
 }

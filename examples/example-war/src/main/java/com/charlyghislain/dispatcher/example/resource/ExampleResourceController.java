@@ -1,17 +1,13 @@
 package com.charlyghislain.dispatcher.example.resource;
 
 import com.charlyghislain.dispatcher.api.context.TemplateContextObject;
-import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
+import com.charlyghislain.dispatcher.api.rendering.*;
 import com.charlyghislain.dispatcher.api.dispatching.DispatchingResult;
 import com.charlyghislain.dispatcher.api.exception.DispatcherException;
 import com.charlyghislain.dispatcher.api.exception.SharedResourceNotFoundException;
 import com.charlyghislain.dispatcher.api.message.DispatcherMessage;
 import com.charlyghislain.dispatcher.api.message.MailAttachment;
 import com.charlyghislain.dispatcher.api.message.Message;
-import com.charlyghislain.dispatcher.api.rendering.RenderedMailHeaders;
-import com.charlyghislain.dispatcher.api.rendering.RenderedMailMessage;
-import com.charlyghislain.dispatcher.api.rendering.RenderedTemplate;
-import com.charlyghislain.dispatcher.api.rendering.RenderingMedia;
 import com.charlyghislain.dispatcher.api.service.MessageResourcesService;
 import com.charlyghislain.dispatcher.api.service.TemplateContextsService;
 import com.charlyghislain.dispatcher.example.message.ExampleMessageA;
@@ -162,7 +158,6 @@ public class ExampleResourceController {
     public Object renderMimeMessage(@Context HttpHeaders httpHeaders, @QueryParam("to") String to) {
         List<Locale> acceptableLanguages = localesService.getAcceptedLanguages(httpHeaders);
         List<TemplateContextObject> exampleTemplateContexts = templateContextsService.createTemplateContexts(getMessage());
-
 
         try {
             Address address = new InternetAddress(to);
