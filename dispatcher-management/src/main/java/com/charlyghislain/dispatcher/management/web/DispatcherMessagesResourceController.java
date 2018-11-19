@@ -1,7 +1,7 @@
 package com.charlyghislain.dispatcher.management.web;
 
 import com.charlyghislain.dispatcher.api.context.TemplateContextObject;
-import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
+import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
 import com.charlyghislain.dispatcher.api.exception.DispatcherException;
 import com.charlyghislain.dispatcher.api.filter.DispatcherMessageFilter;
 import com.charlyghislain.dispatcher.api.header.MailHeadersTemplate;
@@ -86,32 +86,32 @@ public class DispatcherMessagesResourceController implements DispatcherMessagesR
 
     @Override
     public StreamingOutput streamMessageTemplate(String name, WsDispatchingOption wsDispatchingOption, HttpHeaders httpHeaders) {
-        DispatchingOption dispatchingOption = dispatchingOptionConverter.toDispatchingOption(wsDispatchingOption);
+        RenderingOption renderingOption = dispatchingOptionConverter.toDispatchingOption(wsDispatchingOption);
         List<Locale> acceptableLanguages = localesService.getAcceptedLanguages(httpHeaders);
         DispatcherMessage dispatcherMessage = messageResourcesService.findMessageByName(name)
                 .orElseThrow(() -> new DispatcherWebException(DispatcherWebError.MESSAGE_NOT_FOUND, "No message named " + name));
 
-        return multiLocaleMessageService.streamMessageTemplateForFirstMatchingLanguage(acceptableLanguages, dispatcherMessage, dispatchingOption);
+        return multiLocaleMessageService.streamMessageTemplateForFirstMatchingLanguage(acceptableLanguages, dispatcherMessage, renderingOption);
     }
 
 
     @Override
     public void updateMessageTemplate(String name, WsDispatchingOption wsDispatchingOption, String languageTag, InputStream body) {
-        DispatchingOption dispatchingOption = dispatchingOptionConverter.toDispatchingOption(wsDispatchingOption);
+        RenderingOption renderingOption = dispatchingOptionConverter.toDispatchingOption(wsDispatchingOption);
         Locale locale = localesService.getLocale(languageTag);
         DispatcherMessage dispatcherMessage = messageResourcesService.findMessageByName(name)
                 .orElseThrow(() -> new DispatcherWebException(DispatcherWebError.MESSAGE_NOT_FOUND, "No message named " + name));
 
-        messageResourcesUpdateService.setMessageTemplateContent(dispatcherMessage, dispatchingOption, locale, body);
+        messageResourcesUpdateService.setMessageTemplateContent(dispatcherMessage, renderingOption, locale, body);
     }
 
     @Override
     public void updateRootLocaleMessageTemplate(String name, WsDispatchingOption wsDispatchingOption, InputStream body) {
-        DispatchingOption dispatchingOption = dispatchingOptionConverter.toDispatchingOption(wsDispatchingOption);
+        RenderingOption renderingOption = dispatchingOptionConverter.toDispatchingOption(wsDispatchingOption);
         DispatcherMessage dispatcherMessage = messageResourcesService.findMessageByName(name)
                 .orElseThrow(() -> new DispatcherWebException(DispatcherWebError.MESSAGE_NOT_FOUND, "No message named " + name));
 
-        messageResourcesUpdateService.setMessageTemplateContent(dispatcherMessage, dispatchingOption, Locale.ROOT, body);
+        messageResourcesUpdateService.setMessageTemplateContent(dispatcherMessage, renderingOption, Locale.ROOT, body);
     }
 
     @Override
@@ -125,14 +125,14 @@ public class DispatcherMessagesResourceController implements DispatcherMessagesR
     }
 
     private StreamingOutput streamRenderedExampleTemplate(String name, WsDispatchingOption wsDispatchingOption, HttpHeaders httpHeaders) {
-        DispatchingOption dispatchingOption = dispatchingOptionConverter.toDispatchingOption(wsDispatchingOption);
+        RenderingOption renderingOption = dispatchingOptionConverter.toDispatchingOption(wsDispatchingOption);
         List<Locale> acceptableLanguages = localesService.getAcceptedLanguages(httpHeaders);
         DispatcherMessage dispatcherMessage = messageResourcesService.findMessageByName(name)
                 .orElseThrow(() -> new DispatcherWebException(DispatcherWebError.MESSAGE_NOT_FOUND, "No message named " + name));
         List<TemplateContextObject> exampleTemplateContexts = templateContextsService.createExampleTemplateContexts(dispatcherMessage);
 
         try {
-            return multiLocaleMessageService.streamRenderedExampleTemplateForFirstMatchingLanguage(acceptableLanguages, dispatcherMessage, dispatchingOption, exampleTemplateContexts);
+            return multiLocaleMessageService.streamRenderedExampleTemplateForFirstMatchingLanguage(acceptableLanguages, dispatcherMessage, renderingOption, exampleTemplateContexts);
         } catch (DispatcherException e) {
             throw new DispatcherWebException(DispatcherWebError.TEMPLATE_RENDERING_ERROR, e.getMessage());
         }
@@ -140,11 +140,11 @@ public class DispatcherMessagesResourceController implements DispatcherMessagesR
 
     @Override
     public List<String> getAvailableLocalesWithContent(String name, WsDispatchingOption wsDispatchingOption) {
-        DispatchingOption dispatchingOption = dispatchingOptionConverter.toDispatchingOption(wsDispatchingOption);
+        RenderingOption renderingOption = dispatchingOptionConverter.toDispatchingOption(wsDispatchingOption);
         DispatcherMessage dispatcherMessage = messageResourcesService.findMessageByName(name)
                 .orElseThrow(() -> new DispatcherWebException(DispatcherWebError.MESSAGE_NOT_FOUND, "No message named " + name));
 
-        return messageResourcesService.streamLocalesWithExistingVelocityTemplateOrResourceBundle(dispatcherMessage, dispatchingOption)
+        return messageResourcesService.streamLocalesWithExistingVelocityTemplateOrResourceBundle(dispatcherMessage, renderingOption)
                 .map(Locale::toLanguageTag)
                 .collect(Collectors.toList());
     }

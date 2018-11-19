@@ -1,5 +1,6 @@
 package com.charlyghislain.dispatcher.api.dispatching;
 
+import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import javax.validation.constraints.NotNull;
@@ -7,6 +8,8 @@ import java.time.LocalDateTime;
 
 public class DispatchingResult {
 
+    @NotNull
+    private RenderingOption renderingOption;
     @NotNull
     private DispatchingOption dispatchingOption;
     private boolean success;
@@ -18,6 +21,14 @@ public class DispatchingResult {
     private LocalDateTime dispatchedTime;
     @Nullable
     private String messageId;
+
+    public RenderingOption getRenderingOption() {
+        return renderingOption;
+    }
+
+    public void setRenderingOption(RenderingOption renderingOption) {
+        this.renderingOption = renderingOption;
+    }
 
     public DispatchingOption getDispatchingOption() {
         return dispatchingOption;

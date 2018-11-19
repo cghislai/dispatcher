@@ -1,7 +1,7 @@
 package com.charlyghislain.dispatcher.example.resource;
 
 import com.charlyghislain.dispatcher.api.context.TemplateContextObject;
-import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
+import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
 import com.charlyghislain.dispatcher.api.dispatching.DispatchingResult;
 import com.charlyghislain.dispatcher.api.exception.DispatcherException;
 import com.charlyghislain.dispatcher.api.exception.SharedResourceNotFoundException;
@@ -11,7 +11,7 @@ import com.charlyghislain.dispatcher.api.message.Message;
 import com.charlyghislain.dispatcher.api.rendering.RenderedMailHeaders;
 import com.charlyghislain.dispatcher.api.rendering.RenderedMailMessage;
 import com.charlyghislain.dispatcher.api.rendering.RenderedTemplate;
-import com.charlyghislain.dispatcher.api.rendering.RenderingType;
+import com.charlyghislain.dispatcher.api.rendering.RenderingMedia;
 import com.charlyghislain.dispatcher.api.service.MessageResourcesService;
 import com.charlyghislain.dispatcher.api.service.TemplateContextsService;
 import com.charlyghislain.dispatcher.example.message.ExampleMessageA;
@@ -88,7 +88,7 @@ public class ExampleResourceController {
         List<TemplateContextObject> exampleTemplateContexts = templateContextsService.createTemplateContexts(getMessage());
 
         try {
-            return multiLocaleMessageService.streamRenderedExampleTemplateForFirstMatchingLanguage(acceptableLanguages, getMessage(), DispatchingOption.MAIL_HTML, exampleTemplateContexts);
+            return multiLocaleMessageService.streamRenderedExampleTemplateForFirstMatchingLanguage(acceptableLanguages, getMessage(), RenderingOption.LONG_HTML, exampleTemplateContexts);
         } catch (DispatcherException e) {
             throw new DispatcherWebException(DispatcherWebError.TEMPLATE_RENDERING_ERROR, e.getMessage());
         }
@@ -102,7 +102,7 @@ public class ExampleResourceController {
         List<TemplateContextObject> exampleTemplateContexts = templateContextsService.createTemplateContexts(getMessage());
 
         try {
-            return multiLocaleMessageService.streamRenderedExampleTemplateForFirstMatchingLanguage(acceptableLanguages, getMessage(), DispatchingOption.MAIL_TEXT, exampleTemplateContexts);
+            return multiLocaleMessageService.streamRenderedExampleTemplateForFirstMatchingLanguage(acceptableLanguages, getMessage(), RenderingOption.LONG_TEXT, exampleTemplateContexts);
         } catch (DispatcherException e) {
             throw new DispatcherWebException(DispatcherWebError.TEMPLATE_RENDERING_ERROR, e.getMessage());
         }
@@ -116,7 +116,7 @@ public class ExampleResourceController {
         List<TemplateContextObject> exampleTemplateContexts = templateContextsService.createTemplateContexts(getMessage());
 
         try {
-            return multiLocaleMessageService.streamRenderedExampleTemplateForFirstMatchingLanguage(acceptableLanguages, getMessage(), DispatchingOption.SMS, exampleTemplateContexts);
+            return multiLocaleMessageService.streamRenderedExampleTemplateForFirstMatchingLanguage(acceptableLanguages, getMessage(), RenderingOption.SHORT_TEXT, exampleTemplateContexts);
         } catch (DispatcherException e) {
             throw new DispatcherWebException(DispatcherWebError.TEMPLATE_RENDERING_ERROR, e.getMessage());
         }
@@ -168,7 +168,7 @@ public class ExampleResourceController {
             Address address = new InternetAddress(to);
 
             RenderedMailMessage renderedMailMessage = renderMailMessage(acceptableLanguages, exampleTemplateContexts);
-            renderedMailMessage.getMailMessageHeaders().getTo().add(address);
+            addRecipient(address, renderedMailMessage);
 
             Set<DispatchingResult> dispatchingResults = mailDispatcherService.dispatchMessages(renderedMailMessage);
             return dispatchingResults;
@@ -181,16 +181,16 @@ public class ExampleResourceController {
 
     private RenderedMailMessage renderMailMessage(List<Locale> acceptableLanguages, List<TemplateContextObject> exampleTemplateContexts) {
         RenderedMailHeaders renderedMailHeaders = multiLocaleMessageService.renderFirstMailHeadersTemplateMatchingLanguages(acceptableLanguages, getMessage(), exampleTemplateContexts);
-        Map<DispatchingOption, RenderedTemplate> templates = new HashMap<>();
+        Map<RenderingOption, RenderedTemplate> templates = new HashMap<>();
 
         try {
             // Render the available options for this message
             DispatcherMessage message = getMessage();
-            message.getDispatchingOptions().stream()
-                    .filter(option -> option == DispatchingOption.MAIL_HTML || option == DispatchingOption.MAIL_TEXT)
+            message.getRenderingOptions().stream()
+                    .filter(option -> option == RenderingOption.LONG_HTML || option == RenderingOption.LONG_TEXT)
                     .forEach(option -> {
                         try {
-                            RenderedTemplate renderedTemplate = multiLocaleMessageService.getRenderedExampleTemplateForFirstMatchingLanguage(acceptableLanguages, getMessage(), option, exampleTemplateContexts, RenderingType.MAIL);
+                            RenderedTemplate renderedTemplate = multiLocaleMessageService.getRenderedExampleTemplateForFirstMatchingLanguage(acceptableLanguages, getMessage(), option, exampleTemplateContexts, RenderingMedia.NORMAL);
                             templates.put(option, renderedTemplate);
                         } catch (DispatcherException e) {
                             throw new RuntimeException(e);
@@ -199,7 +199,7 @@ public class ExampleResourceController {
 
             RenderedMailMessage mailMessage = new RenderedMailMessage();
             mailMessage.setRenderedTemplates(templates);
-            mailMessage.setMailMessageHeaders(renderedMailHeaders);
+            mailMessage.setRenderedHeaders(renderedMailHeaders);
 
 
             // Add an attachment
@@ -216,6 +216,11 @@ public class ExampleResourceController {
         } catch (SharedResourceNotFoundException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void addRecipient(Address address, RenderedMailMessage renderedMailMessage) {
+        RenderedMailHeaders mailHeaders = renderedMailMessage.getRenderedHeaders();
+        mailHeaders.getTo().add(address);
     }
 
 

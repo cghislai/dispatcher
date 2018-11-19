@@ -1,7 +1,7 @@
 package com.charlyghislain.dispatcher.service;
 
 import com.charlyghislain.dispatcher.api.configuration.ConfigConstants;
-import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
+import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
 import com.charlyghislain.dispatcher.api.exception.DispatcherRuntimeException;
 import com.charlyghislain.dispatcher.api.header.MailHeadersTemplate;
 import com.charlyghislain.dispatcher.api.message.DispatcherMessage;
@@ -46,9 +46,9 @@ public class DispatcherMessageResourcesUpdateService implements MessageResources
 
 
     @Override
-    public void setMessageTemplateContent(DispatcherMessage message, DispatchingOption dispatchingOption, Locale locale, InputStream contentStream) {
+    public void setMessageTemplateContent(DispatcherMessage message, RenderingOption renderingOption, Locale locale, InputStream contentStream) {
 
-        Path relativePath = messageResourcesService.streamVelocityTemplatePaths(message, dispatchingOption, locale)
+        Path relativePath = messageResourcesService.streamVelocityTemplatePaths(message, renderingOption, locale)
                 .findFirst()
                 .orElseThrow(() -> new DispatcherRuntimeException("Failed to find a template path"));
 

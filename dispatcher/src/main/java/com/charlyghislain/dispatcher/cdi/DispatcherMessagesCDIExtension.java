@@ -2,7 +2,7 @@ package com.charlyghislain.dispatcher.cdi;
 
 
 import com.charlyghislain.dispatcher.api.context.TemplateContext;
-import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
+import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
 import com.charlyghislain.dispatcher.api.exception.DispatcherRuntimeException;
 import com.charlyghislain.dispatcher.api.message.DispatcherMessage;
 import com.charlyghislain.dispatcher.api.message.Message;
@@ -124,9 +124,9 @@ public class DispatcherMessagesCDIExtension implements Extension {
                 .orElseThrow(() -> this.newCompositionItemNotFoundError(compositionName, message, compositionItemClass));
 
         // check dispatching options
-        Set<DispatchingOption> dispatchingOptions = message.getDispatchingOptions();
-        boolean isMissingDispatchingOptions = dispatchingOptions.stream()
-                .anyMatch(option -> !compositionMessage.getDispatchingOptions().contains(option));
+        Set<RenderingOption> renderingOptions = message.getRenderingOptions();
+        boolean isMissingDispatchingOptions = renderingOptions.stream()
+                .anyMatch(option -> !compositionMessage.getRenderingOptions().contains(option));
         if (isMissingDispatchingOptions) {
             String errorMessage = MessageFormat.format("MessageDefinition {0} supports dispatching options {1}"
                             + " and reference {2} composition item {3}, however this latter only supports dispatching options {4}."
@@ -152,13 +152,13 @@ public class DispatcherMessagesCDIExtension implements Extension {
         String simpleName = getSimpleName(messageClass);
         String description = getNonEmptyString(messageDefinitionAnnotation.description())
                 .orElse(null);
-        Set<DispatchingOption> dispatchingOptions = Arrays.stream(messageDefinitionAnnotation.dispatchingOptions())
+        Set<RenderingOption> renderingOptions = Arrays.stream(messageDefinitionAnnotation.dispatchingOptions())
                 .collect(Collectors.toSet());
         boolean compositionItem = messageDefinitionAnnotation.compositionItem();
 
         DispatcherMessage dispatcherMessage = new DispatcherMessage();
         dispatcherMessage.setDescription(description);
-        dispatcherMessage.setDispatchingOptions(dispatchingOptions);
+        dispatcherMessage.setRenderingOptions(renderingOptions);
         dispatcherMessage.setMessageType(messageClass);
         dispatcherMessage.setQualifiedName(qualifiedName);
         dispatcherMessage.setName(simpleName);
@@ -244,7 +244,7 @@ public class DispatcherMessagesCDIExtension implements Extension {
 
 
     private String debugDispatchingOptions(DispatcherMessage dispatcherMessage) {
-        return dispatcherMessage.getDispatchingOptions().stream()
+        return dispatcherMessage.getRenderingOptions().stream()
                 .reduce("", (a, b) -> a.isEmpty() ? b.name() : a + ", " + b.name(), String::concat);
     }
 

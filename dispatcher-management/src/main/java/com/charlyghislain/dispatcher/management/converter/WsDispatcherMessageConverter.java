@@ -1,6 +1,6 @@
 package com.charlyghislain.dispatcher.management.converter;
 
-import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
+import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
 import com.charlyghislain.dispatcher.api.message.DispatcherMessage;
 import com.charlyghislain.dispatcher.management.api.domain.WsDispatcherMessage;
 import com.charlyghislain.dispatcher.management.api.domain.WsDispatchingOption;
@@ -16,11 +16,11 @@ public class WsDispatcherMessageConverter {
     public WsDispatcherMessage toWsDispatcherMessage(DispatcherMessage dispatcherMessage) {
         String qualifiedName = dispatcherMessage.getQualifiedName();
         String name = dispatcherMessage.getName();
-        Set<DispatchingOption> dispatchingOptions = dispatcherMessage.getDispatchingOptions();
+        Set<RenderingOption> renderingOptions = dispatcherMessage.getRenderingOptions();
         String description = dispatcherMessage.getDescription();
         boolean compositionItem = dispatcherMessage.isCompositionItem();
 
-        List<WsDispatchingOption> wsDispatchingOptions = dispatchingOptions.stream()
+        List<WsDispatchingOption> wsDispatchingOptions = renderingOptions.stream()
                 .map(Enum::name)
                 .map(WsDispatchingOption::valueOf)
                 .collect(Collectors.toList());

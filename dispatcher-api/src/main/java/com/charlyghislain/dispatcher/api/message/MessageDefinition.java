@@ -1,7 +1,7 @@
 package com.charlyghislain.dispatcher.api.message;
 
 
-import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
+import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -23,7 +23,7 @@ public @interface MessageDefinition {
      * A list of dispatching options supported by this message. If using header or footer, they must
      * support at least all options declared here.
      */
-    DispatchingOption[] dispatchingOptions() default {DispatchingOption.MAIL_HTML};
+    RenderingOption[] dispatchingOptions() default {RenderingOption.LONG_HTML};
 
     /**
      * Name of the message, which is the folder in which the resources files are fetched.

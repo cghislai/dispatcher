@@ -49,7 +49,7 @@ Messages are defined using the `@MessageDefinition` annotation:
 ```java
 
 @MessageDefinition(name = "a-first-message",
-        dispatchingOptions = {DispatchingOption.MAIL_HTML, DispatchingOption.MAIL_TEXT, DispatchingOption.SMS},
+        renderingOptions = {DispatchingOption.MAIL_HTML, DispatchingOption.MAIL_TEXT, DispatchingOption.SMS},
         templateContexts = {AFirstMessageContext.class})
 public class AFirstMessage {
 }
@@ -140,7 +140,7 @@ will be searched for:
 Mail headers may be defined by annotating the message definition:
 ```java
 @MessageDefinition(name = "a-first-message",
-        dispatchingOptions = {DispatchingOption.MAIL_HTML, DispatchingOption.MAIL_TEXT, DispatchingOption.SMS},
+        renderingOptions = {DispatchingOption.MAIL_HTML, DispatchingOption.MAIL_TEXT, DispatchingOption.SMS},
         templateContexts = {AFirstMessageContext.class})
 @MailHeaders(subject = "A first subject", to="${user.email}")        
 public class AFirstMessage {

@@ -1,13 +1,15 @@
 package com.charlyghislain.dispatcher.api.rendering;
 
 
+import com.charlyghislain.dispatcher.api.header.MailHeadersTemplate;
+
 import javax.mail.Address;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.Set;
 
 
-public class RenderedMailHeaders {
+public class RenderedMailHeaders implements RenderedHeaders<MailHeadersTemplate> {
 
     @NotNull
     private Address from;

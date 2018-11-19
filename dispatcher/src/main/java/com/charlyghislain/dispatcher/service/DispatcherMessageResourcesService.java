@@ -1,7 +1,7 @@
 package com.charlyghislain.dispatcher.service;
 
 import com.charlyghislain.dispatcher.api.configuration.ConfigConstants;
-import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
+import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
 import com.charlyghislain.dispatcher.api.exception.DispatcherException;
 import com.charlyghislain.dispatcher.api.exception.DispatcherRuntimeException;
 import com.charlyghislain.dispatcher.api.exception.NoMailHeadersTemplateFoundException;
@@ -194,9 +194,9 @@ public class DispatcherMessageResourcesService implements MessageResourcesServic
 
 
     @Override
-    public Stream<Path> streamVelocityTemplatePaths(DispatcherMessage dispatcherMessage, DispatchingOption dispatchingOption, Locale locale) {
+    public Stream<Path> streamVelocityTemplatePaths(DispatcherMessage dispatcherMessage, RenderingOption renderingOption, Locale locale) {
         return this.streamCandidateLocaleSuffixes(locale)
-                .map(suffix -> this.getVelocityTemplateRelativePath(dispatcherMessage, dispatchingOption, suffix));
+                .map(suffix -> this.getVelocityTemplateRelativePath(dispatcherMessage, renderingOption, suffix));
     }
 
     @Override
@@ -205,11 +205,11 @@ public class DispatcherMessageResourcesService implements MessageResourcesServic
     }
 
     @Override
-    public Stream<Locale> streamLocalesWithExistingVelocityTemplateOrResourceBundle(DispatcherMessage dispatcherMessage, DispatchingOption dispatchingOption) {
+    public Stream<Locale> streamLocalesWithExistingVelocityTemplateOrResourceBundle(DispatcherMessage dispatcherMessage, RenderingOption renderingOption) {
         Path folderRelativePath = this.getMessageFolderPath(dispatcherMessage);
 
-        Stream<Path> localesWithTemplateStream = this.streamExistingVelocityTemplateFilePaths(folderRelativePath, dispatchingOption);
-        Stream<Path> localesWithResourceBundle = this.streamExistingResourceBundleFilePaths(folderRelativePath, dispatchingOption);
+        Stream<Path> localesWithTemplateStream = this.streamExistingVelocityTemplateFilePaths(folderRelativePath, renderingOption);
+        Stream<Path> localesWithResourceBundle = this.streamExistingResourceBundleFilePaths(folderRelativePath, renderingOption);
         return Stream.concat(localesWithResourceBundle, localesWithTemplateStream)
                 .map(this::resolveLocalizedFileLocale)
                 .filter(Optional::isPresent)
@@ -305,9 +305,9 @@ public class DispatcherMessageResourcesService implements MessageResourcesServic
     }
 
 
-    private Path getVelocityTemplateRelativePath(DispatcherMessage dispatcherMessage, DispatchingOption dispatchingOption, String localeSuffix) {
+    private Path getVelocityTemplateRelativePath(DispatcherMessage dispatcherMessage, RenderingOption renderingOption, String localeSuffix) {
         Path folder = this.getMessageFolderPath(dispatcherMessage);
-        String velocityTemplateFileName = this.getVelocityTemplateFileName(dispatchingOption, localeSuffix);
+        String velocityTemplateFileName = this.getVelocityTemplateFileName(renderingOption, localeSuffix);
         return folder.resolve(velocityTemplateFileName);
     }
 
@@ -316,8 +316,8 @@ public class DispatcherMessageResourcesService implements MessageResourcesServic
         return Paths.get(name);
     }
 
-    private String getVelocityTemplateFileName(DispatchingOption dispatchingOption, String localeSuffix) {
-        String disptachName = dispatchingOption.getTemplateFileName();
+    private String getVelocityTemplateFileName(RenderingOption renderingOption, String localeSuffix) {
+        String disptachName = renderingOption.getTemplateFileName();
         return disptachName + localeSuffix + VELOCITY_TEMPLATE_EXTENSION;
     }
 
@@ -345,57 +345,57 @@ public class DispatcherMessageResourcesService implements MessageResourcesServic
         }
     }
 
-    private Stream<Path> streamExistingVelocityTemplateFilePaths(Path messageFolderPath, DispatchingOption dispatchingOption) {
+    private Stream<Path> streamExistingVelocityTemplateFilePaths(Path messageFolderPath, RenderingOption renderingOption) {
         String messageFolderPathName = messageFolderPath.toString();
 
         Stream<Path> filesystemTemplatePaths = filesystemResourcesClassLoaderOptional
                 .map(classLoader -> classLoader.getResource(messageFolderPathName))
-                .map(url -> this.streamExistingVelocityTemplateFilePaths(url, dispatchingOption))
+                .map(url -> this.streamExistingVelocityTemplateFilePaths(url, renderingOption))
                 .orElse(Stream.empty());
 
         URL classPathResourceUrl = this.classpathResourcesClassloader.getResource(messageFolderPathName);
         Stream<Path> classPathFiles = Optional.ofNullable(classPathResourceUrl)
-                .map(url -> this.streamExistingVelocityTemplateFilePaths(url, dispatchingOption))
+                .map(url -> this.streamExistingVelocityTemplateFilePaths(url, renderingOption))
                 .orElse(Stream.empty());
 
         return Stream.concat(filesystemTemplatePaths, classPathFiles)
                 .distinct();
     }
 
-    private Stream<Path> streamExistingVelocityTemplateFilePaths(URL folderPathUrl, DispatchingOption dispatchingOption) {
+    private Stream<Path> streamExistingVelocityTemplateFilePaths(URL folderPathUrl, RenderingOption renderingOption) {
         try {
             URI folderPathURI = folderPathUrl.toURI();
             Path folderPath = Paths.get(folderPathURI);
             return Files.list(folderPath)
-                    .filter(path -> this.isVelocityTemplate(path, dispatchingOption));
+                    .filter(path -> this.isVelocityTemplate(path, renderingOption));
         } catch (URISyntaxException | IOException e) {
             throw new DispatcherRuntimeException("Failed to list message folder content at " + folderPathUrl);
         }
     }
 
-    private Stream<Path> streamExistingResourceBundleFilePaths(Path messageFolderPath, DispatchingOption dispatchingOption) {
+    private Stream<Path> streamExistingResourceBundleFilePaths(Path messageFolderPath, RenderingOption renderingOption) {
         String messageFolderPathName = messageFolderPath.toString();
 
         Stream<Path> filesystemBundlePaths = filesystemResourcesClassLoaderOptional
                 .map(classLoader -> classLoader.getResource(messageFolderPathName))
-                .map(url -> this.streamExistingResourceBundleFilePaths(url, dispatchingOption))
+                .map(url -> this.streamExistingResourceBundleFilePaths(url, renderingOption))
                 .orElse(Stream.empty());
 
         URL classPathResourceUrl = this.classpathResourcesClassloader.getResource(messageFolderPathName);
         Stream<Path> classPathFiles = Optional.ofNullable(classPathResourceUrl)
-                .map(url -> this.streamExistingResourceBundleFilePaths(url, dispatchingOption))
+                .map(url -> this.streamExistingResourceBundleFilePaths(url, renderingOption))
                 .orElse(Stream.empty());
 
         return Stream.concat(filesystemBundlePaths, classPathFiles)
                 .distinct();
     }
 
-    private Stream<Path> streamExistingResourceBundleFilePaths(URL folderPathUrl, DispatchingOption dispatchingOption) {
+    private Stream<Path> streamExistingResourceBundleFilePaths(URL folderPathUrl, RenderingOption renderingOption) {
         try {
             URI folderPathURI = folderPathUrl.toURI();
             Path folderPath = Paths.get(folderPathURI);
             return Files.list(folderPath)
-                    .filter(path -> this.isResourceBundle(path, dispatchingOption));
+                    .filter(path -> this.isResourceBundle(path, renderingOption));
         } catch (URISyntaxException | IOException e) {
             throw new DispatcherRuntimeException("Failed to list message folder content at " + folderPathUrl);
         }
@@ -431,14 +431,14 @@ public class DispatcherMessageResourcesService implements MessageResourcesServic
     }
 
 
-    private boolean isVelocityTemplate(Path path, DispatchingOption dispatchingOption) {
+    private boolean isVelocityTemplate(Path path, RenderingOption renderingOption) {
         String fileName = path.getFileName().toString();
-        return fileName.startsWith(dispatchingOption.getTemplateFileName())
+        return fileName.startsWith(renderingOption.getTemplateFileName())
                 && fileName.endsWith(VELOCITY_TEMPLATE_EXTENSION);
     }
 
-    private boolean isResourceBundle(Path path, DispatchingOption dispatchingOption) {
-        return this.streamDispatchingOptionBundleBaseNames(dispatchingOption)
+    private boolean isResourceBundle(Path path, RenderingOption renderingOption) {
+        return this.streamDispatchingOptionBundleBaseNames(renderingOption)
                 .anyMatch(bundleName -> this.hasBundleName(path, bundleName));
     }
 
@@ -449,10 +449,10 @@ public class DispatcherMessageResourcesService implements MessageResourcesServic
 
     }
 
-    private Stream<String> streamDispatchingOptionBundleBaseNames(DispatchingOption dispatchingOption) {
-        switch (dispatchingOption) {
-            case MAIL_HTML:
-            case MAIL_TEXT:
+    private Stream<String> streamDispatchingOptionBundleBaseNames(RenderingOption renderingOption) {
+        switch (renderingOption) {
+            case LONG_HTML:
+            case LONG_TEXT:
                 return Stream.of(MailHeaders.class.getSimpleName());
         }
         return Stream.empty();

@@ -1,7 +1,7 @@
 package com.charlyghislain.dispatcher.api.service;
 
 
-import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
+import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
 import com.charlyghislain.dispatcher.api.header.MailHeadersTemplate;
 import com.charlyghislain.dispatcher.api.message.DispatcherMessage;
 
@@ -11,7 +11,7 @@ import java.util.Locale;
 
 public interface MessageResourcesUpdateService {
 
-    void setMessageTemplateContent(DispatcherMessage message, DispatchingOption dispatchingOption, Locale locale, InputStream contentStream);
+    void setMessageTemplateContent(DispatcherMessage message, RenderingOption renderingOption, Locale locale, InputStream contentStream);
 
     void setMailHeadersTemplate(DispatcherMessage message, Locale locale, MailHeadersTemplate mailHeaders);
 

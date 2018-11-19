@@ -2,7 +2,7 @@ package com.charlyghislain.dispatcher.util;
 
 import com.charlyghislain.dispatcher.api.exception.DispatcherException;
 import com.charlyghislain.dispatcher.api.message.ReferencedResource;
-import com.charlyghislain.dispatcher.api.rendering.RenderingType;
+import com.charlyghislain.dispatcher.api.rendering.RenderingMedia;
 import com.charlyghislain.dispatcher.mail.ReferencedResourceProvider;
 import org.apache.velocity.tools.config.DefaultKey;
 import org.apache.velocity.tools.generic.FormatConfig;
@@ -19,13 +19,13 @@ import java.util.Set;
 public class TemplateResourcesTool extends FormatConfig {
 
     private static final Logger LOG = LoggerFactory.getLogger(TemplateResourcesTool.class);
-    private final RenderingType renderingType;
+    private final RenderingMedia renderingMedia;
     private final ReferencedResourceProvider referencedResourceProvider;
 
     private Set<ReferencedResource> referencedResources = new HashSet<>();
 
-    public TemplateResourcesTool(RenderingType renderingType, ReferencedResourceProvider referencedResourceProvider) {
-        this.renderingType = renderingType;
+    public TemplateResourcesTool(RenderingMedia renderingMedia, ReferencedResourceProvider referencedResourceProvider) {
+        this.renderingMedia = renderingMedia;
         this.referencedResourceProvider = referencedResourceProvider;
     }
 
@@ -55,18 +55,18 @@ public class TemplateResourcesTool extends FormatConfig {
 
     private String createUrl(ReferencedResource referencedResource) {
         String id = referencedResource.getId();
-        switch (renderingType) {
-            case WEB:
+        switch (renderingMedia) {
+            case WEB_PAGE:
                 try {
                     return this.referencedResourceProvider.getWebUrl(referencedResource)
                             .toString();
                 } catch (DispatcherException e) {
                     LOG.warn("Failed to create url for reference resource id " + id, e);
                 }
-            case MAIL:
+            case NORMAL:
                 return "cid:" + id;
         }
-        throw new IllegalStateException("rendering option not handled: " + renderingType.name());
+        throw new IllegalStateException("rendering option not handled: " + renderingMedia.name());
     }
 
 }

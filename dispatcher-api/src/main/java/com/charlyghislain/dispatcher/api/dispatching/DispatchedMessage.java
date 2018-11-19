@@ -1,16 +1,23 @@
 package com.charlyghislain.dispatcher.api.dispatching;
 
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 public class DispatchedMessage {
 
-    private Map<DispatchingOption, DispatchingResult> dispatchingResults;
+    private final Locale locale;
+    private final List<DispatchingResult> dispatchingResultList = new ArrayList<>();
 
-    public Map<DispatchingOption, DispatchingResult> getDispatchingResults() {
-        return dispatchingResults;
+    public DispatchedMessage(Locale locale) {
+        this.locale = locale;
     }
 
-    public void setDispatchingResults(Map<DispatchingOption, DispatchingResult> dispatchingResults) {
-        this.dispatchingResults = dispatchingResults;
+    public List<DispatchingResult> getDispatchingResultList() {
+        return dispatchingResultList;
+    }
+
+    public Locale getLocale() {
+        return locale;
     }
 }

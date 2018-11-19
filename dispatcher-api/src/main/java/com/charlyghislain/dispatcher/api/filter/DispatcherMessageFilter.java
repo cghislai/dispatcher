@@ -1,12 +1,12 @@
 package com.charlyghislain.dispatcher.api.filter;
 
-import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
+import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 public class DispatcherMessageFilter {
 
     @Nullable
-    private DispatchingOption dispatchingOption;
+    private RenderingOption renderingOption;
     @Nullable
     private String nameContains;
     @Nullable
@@ -14,12 +14,12 @@ public class DispatcherMessageFilter {
     @Nullable
     private String packageContains;
 
-    public DispatchingOption getDispatchingOption() {
-        return dispatchingOption;
+    public RenderingOption getRenderingOption() {
+        return renderingOption;
     }
 
-    public void setDispatchingOption(DispatchingOption dispatchingOption) {
-        this.dispatchingOption = dispatchingOption;
+    public void setRenderingOption(RenderingOption renderingOption) {
+        this.renderingOption = renderingOption;
     }
 
     public String getNameContains() {

@@ -1,7 +1,7 @@
 package com.charlyghislain.dispatcher.api.service;
 
 
-import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
+import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
 import com.charlyghislain.dispatcher.api.exception.NoMailHeadersTemplateFoundException;
 import com.charlyghislain.dispatcher.api.exception.SharedResourceNotFoundException;
 import com.charlyghislain.dispatcher.api.filter.DispatcherMessageFilter;
@@ -45,11 +45,11 @@ public interface MessageResourcesService {
     InputStream streamSharedResource(Path resourcePath) throws SharedResourceNotFoundException;
 
 
-    Stream<Path> streamVelocityTemplatePaths(DispatcherMessage dispatcherMessage, DispatchingOption dispatchingOption, Locale locale);
+    Stream<Path> streamVelocityTemplatePaths(DispatcherMessage dispatcherMessage, RenderingOption renderingOption, Locale locale);
 
     InputStream streamVelocityTemplate(Path templatePath);
 
-    Stream<Locale> streamLocalesWithExistingVelocityTemplateOrResourceBundle(DispatcherMessage dispatcherMessage, DispatchingOption dispatchingOption);
+    Stream<Locale> streamLocalesWithExistingVelocityTemplateOrResourceBundle(DispatcherMessage dispatcherMessage, RenderingOption renderingOption);
 
 
     void clearResourceCaches();

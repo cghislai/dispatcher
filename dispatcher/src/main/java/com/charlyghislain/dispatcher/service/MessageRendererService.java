@@ -3,18 +3,12 @@ package com.charlyghislain.dispatcher.service;
 import com.charlyghislain.dispatcher.api.configuration.ConfigConstants;
 import com.charlyghislain.dispatcher.api.context.TemplateContextObject;
 import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
-import com.charlyghislain.dispatcher.api.exception.DispatcherException;
-import com.charlyghislain.dispatcher.api.exception.DispatcherRuntimeException;
-import com.charlyghislain.dispatcher.api.exception.NoTemplateFoundException;
+import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
+import com.charlyghislain.dispatcher.api.exception.*;
 import com.charlyghislain.dispatcher.api.header.MailHeadersTemplate;
 import com.charlyghislain.dispatcher.api.message.DispatcherMessage;
 import com.charlyghislain.dispatcher.api.message.ReferencedResource;
-import com.charlyghislain.dispatcher.api.rendering.ReadyToBeRenderedMessage;
-import com.charlyghislain.dispatcher.api.rendering.RenderedMailHeaders;
-import com.charlyghislain.dispatcher.api.rendering.RenderedMailMessage;
-import com.charlyghislain.dispatcher.api.rendering.RenderedMessage;
-import com.charlyghislain.dispatcher.api.rendering.RenderedTemplate;
-import com.charlyghislain.dispatcher.api.rendering.RenderingType;
+import com.charlyghislain.dispatcher.api.rendering.*;
 import com.charlyghislain.dispatcher.api.service.MessageRenderer;
 import com.charlyghislain.dispatcher.api.service.MessageResourcesService;
 import com.charlyghislain.dispatcher.mail.ReferencedResourceProvider;
@@ -115,49 +109,96 @@ public class MessageRendererService implements MessageRenderer {
 
 
     @Override
-    public RenderedMessage renderMessage(ReadyToBeRenderedMessage readyToBeRenderedMessage) throws DispatcherException {
-        Set<DispatchingOption> dispatchingOptions = readyToBeRenderedMessage.getDispatchingOptions();
-        Set<DispatchingOption> mailDispatchingOptions = dispatchingOptions.stream()
-                .filter(this::isMailDispatching)
-                .collect(Collectors.toSet());
+    public RenderedMessage renderMessage(ReadyToBeRenderedMessage readyToBeRenderedMessage) throws MessageRenderingException {
+        // Accepted locales are iterated over until a message could be rendered.
+        List<Locale> acceptedLocales = readyToBeRenderedMessage.getAcceptedLocales();
+        List<MessageRenderingException> localesRenderingExceptions = new ArrayList<>();
+        for (Locale locale : acceptedLocales) {
+            try {
+                RenderedMessage renderedMessage = renderForLocale(readyToBeRenderedMessage, locale);
+                return renderedMessage;
+            } catch (MessageRenderingException e) {
+                String message = MessageFormat.format("Rendering for locale {0} failed with {1}", locale.toString(), e.getMessage());
+                MessageRenderingException renderingException = new MessageRenderingException(message, e);
+                localesRenderingExceptions.add(renderingException);
+            }
+        }
 
-        RenderedMessage renderedMessage = new RenderedMessage();
+        String messageName = readyToBeRenderedMessage.getMessage().getName();
+        String errorMessage = MessageFormat.format("Could not find any locale for which to render message {0}", messageName);
+        MultipleRenderingErrorsException globalError = new MultipleRenderingErrorsException(errorMessage, localesRenderingExceptions);
+        throw globalError;
 
-        if (!mailDispatchingOptions.isEmpty()) {
-            RenderedMailMessage renderedMailMessage = renderMailMessage(readyToBeRenderedMessage, mailDispatchingOptions);
-            renderedMessage.setRenderedMailMessage(renderedMailMessage);
+    }
+
+    @Override
+    public RenderedMessage renderForLocale(ReadyToBeRenderedMessage readyToBeRenderedMessage, Locale locale) throws MessageRenderingException {
+        // Dispatching options are iterated over. Depending on {@link ReadyToBeRenderedMessage#isRequireAllDispatchingOptionToRender},
+        // rendering will fail if a message could not be rendered for none or not all of them
+
+        List<DispatchingRenderingOption> dispatchingOptions = readyToBeRenderedMessage.getDispatchingRenderingOptionsByOrderOfPreference();
+        boolean requireAllToRender = readyToBeRenderedMessage.isRequireAllDispatchingOptionToRender();
+        List<MessageRenderingException> optionsRenderingExceptions = new ArrayList<>();
+
+        RenderedMessage renderedMessage = new RenderedMessage(locale);
+        List<RenderedMessageDispatchingOption> renderedMessageDispatchingOptions = renderedMessage.getRenderedMessageDispatchingOptions();
+        for (DispatchingRenderingOption dispatchingOption : dispatchingOptions) {
+            try {
+                RenderedMessageDispatchingOption renderedMessageDispatchingOption = renderForLocaleAndOption(readyToBeRenderedMessage, locale, dispatchingOption);
+                renderedMessageDispatchingOptions.add(renderedMessageDispatchingOption);
+            } catch (MessageRenderingException e) {
+                optionsRenderingExceptions.add(e);
+            }
+        }
+
+        String messageName = readyToBeRenderedMessage.getMessage().getName();
+        String optionsNames = dispatchingOptions.stream().map(DispatchingRenderingOption::getDispatchingOption)
+                .map(Enum::name)
+                .collect(Collectors.joining(","));
+        if (requireAllToRender && !optionsRenderingExceptions.isEmpty()) {
+            String errorMessage = MessageFormat.format("Could not render all dispatching option of message {0} for locale {1} and options {2}",
+                    messageName, locale.toString(), optionsNames);
+            throw new MultipleRenderingErrorsException(errorMessage, optionsRenderingExceptions);
+        } else if (renderedMessageDispatchingOptions.isEmpty()) {
+            String errorMessage = MessageFormat.format("Could not render any of the dispatching opttion for message {0}, locale {1} and options {2}",
+                    messageName, locale.toString(), optionsNames);
+            throw new MultipleRenderingErrorsException(errorMessage, optionsRenderingExceptions);
         }
 
         return renderedMessage;
     }
 
     @Override
-    public InputStream streamNonRenderedTemplate(DispatcherMessage dispatcherMessage, DispatchingOption dispatchingOption, Locale locale) throws NoTemplateFoundException {
-        return messageResourcesService.streamVelocityTemplatePaths(dispatcherMessage, dispatchingOption, locale)
-                .map(this::streamRawTemplateContent)
-                .findFirst()
-                .orElseThrow(() -> new NoTemplateFoundException(dispatcherMessage, dispatchingOption, locale));
+    public RenderedMessageDispatchingOption renderForLocaleAndOption(ReadyToBeRenderedMessage readyToBeRenderedMessage, Locale locale, DispatchingRenderingOption dispatchingOption) throws MessageRenderingException {
+        DispatchingOption option = dispatchingOption.getDispatchingOption();
+        switch (option) {
+            case MAIL:
+                return renderMail(readyToBeRenderedMessage, locale, dispatchingOption);
+            default:
+                throw new MessageRenderingException("Not implemented");
+        }
     }
 
+
     @Override
-    public RenderedTemplate renderTemplate(DispatcherMessage message, DispatchingOption dispatchingOption, Locale locale, List<TemplateContextObject> templateContextObjects, RenderingType renderingType) throws DispatcherException {
+    public RenderedTemplate renderTemplate(DispatcherMessage message, RenderingOption renderingOption, Locale locale, List<TemplateContextObject> templateContextObjects, RenderingMedia renderingMedia) throws MessageRenderingException {
         Optional<DispatcherMessage> messageHeader = message.getHeader();
         Optional<DispatcherMessage> messageFooter = message.getFooter();
 
         List<RenderedTemplate> templateList = new ArrayList<>();
 
         if (messageHeader.isPresent()) {
-            RenderedTemplate renderedTemplate = this.renderTemplate(messageHeader.get(), dispatchingOption, locale, templateContextObjects, renderingType);
+            RenderedTemplate renderedTemplate = this.renderTemplate(messageHeader.get(), renderingOption, locale, templateContextObjects, renderingMedia);
             templateList.add(renderedTemplate);
         }
 
-        RenderedTemplate renderedContent = streamRenderedTemplatesForLocale(message, locale, dispatchingOption, templateContextObjects, renderingType)
+        RenderedTemplate renderedContent = streamRenderedTemplatesForLocale(message, locale, renderingOption, templateContextObjects, renderingMedia)
                 .findFirst()
-                .orElseThrow(() -> new DispatcherException("Could not find any template for message " + message.getName() + ", option " + dispatchingOption + " and locale " + locale));
+                .orElseThrow(() -> new MessageRenderingException("Could not find any template for message " + message.getName() + ", option " + renderingOption + " and locale " + locale));
         templateList.add(renderedContent);
 
         if (messageFooter.isPresent()) {
-            RenderedTemplate renderedTemplate = this.renderTemplate(messageFooter.get(), dispatchingOption, locale, templateContextObjects, renderingType);
+            RenderedTemplate renderedTemplate = this.renderTemplate(messageFooter.get(), renderingOption, locale, templateContextObjects, renderingMedia);
             templateList.add(renderedTemplate);
         }
 
@@ -165,8 +206,8 @@ public class MessageRendererService implements MessageRenderer {
     }
 
     @Override
-    public RenderedMailHeaders renderMailHeaders(MailHeadersTemplate mailHeadersTemplate, Locale locale, List<TemplateContextObject> templateContexts) {
-        VelocityContext velocityContext = this.createVelocityContext(templateContexts, locale, RenderingType.MAIL);
+    public RenderedMailHeaders renderMailHeaders(MailHeadersTemplate mailHeadersTemplate, Locale locale, List<TemplateContextObject> templateContexts) throws MessageRenderingException {
+        VelocityContext velocityContext = this.createVelocityContext(templateContexts, locale, RenderingMedia.NORMAL);
 
         RenderedMailHeaders renderedMailHeaders = new RenderedMailHeaders();
         this.renderSingleAddressHeaderField(mailHeadersTemplate::getFrom, renderedMailHeaders::setFrom, velocityContext);
@@ -177,57 +218,70 @@ public class MessageRendererService implements MessageRenderer {
         return renderedMailHeaders;
     }
 
-    private RenderedMailMessage renderMailMessage(ReadyToBeRenderedMessage readyToBeRenderedMessage, Set<DispatchingOption> mailDispatchingOptions) throws DispatcherException {
-        DispatcherMessage message = readyToBeRenderedMessage.getMessage();
-        List<TemplateContextObject> contextObjects = readyToBeRenderedMessage.getContextObjects();
-        List<Locale> acceptedLocales = readyToBeRenderedMessage.getAcceptedLocales();
-        MailHeadersTemplate mailHeadersTemplate = readyToBeRenderedMessage.getMailHeadersTemplate();
-        RenderingType renderingType = readyToBeRenderedMessage.getRenderingType();
-
-
-        RenderedMailHeaders mailHeaders = acceptedLocales.stream()
-                .map(locale -> renderMailHeaders(mailHeadersTemplate, locale, contextObjects))
+    @Override
+    public InputStream streamNonRenderedTemplate(DispatcherMessage dispatcherMessage, RenderingOption renderingOption, Locale locale) throws NoTemplateFoundException {
+        return messageResourcesService.streamVelocityTemplatePaths(dispatcherMessage, renderingOption, locale)
+                .map(this::streamRawTemplateContent)
                 .findFirst()
-                .orElseThrow(() -> new DispatcherException("Could not render mail headers"));
+                .orElseThrow(() -> new NoTemplateFoundException(dispatcherMessage, renderingOption, locale));
+    }
 
-        Map<DispatchingOption, RenderedTemplate> renderedTemplateMap = new HashMap<>();
-        for (DispatchingOption dispatchingOption : mailDispatchingOptions) {
-            RenderedTemplate renderedTemplate = acceptedLocales.stream()
-                    .map(locale -> tryRenderTemplate(message, dispatchingOption, acceptedLocales, contextObjects, renderingType))
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
-                    .findFirst()
-                    .orElseThrow(() -> new DispatcherException("Could not render mail template for dispatching option " + dispatchingOption));
-            renderedTemplateMap.put(dispatchingOption, renderedTemplate);
-        }
+    private RenderedMailMessage renderMail(ReadyToBeRenderedMessage readyToBeRenderedMessage, Locale locale, DispatchingRenderingOption dispatchingOption) throws MessageRenderingException {
+        List<TemplateContextObject> contextObjects = readyToBeRenderedMessage.getContextObjects();
+        DispatcherMessage message = readyToBeRenderedMessage.getMessage();
+        String messageName = readyToBeRenderedMessage.getMessage().getName();
+        List<RenderingOption> renderingOptions = dispatchingOption.getRenderingOptionsByOrderOfPreference();
+        boolean acceptAnyRenderedTemplate = dispatchingOption.isAcceptAny();
+        RenderingMedia renderingMedia = readyToBeRenderedMessage.getRenderingMedia();
+        String optionsNames = renderingOptions.stream()
+                .map(Enum::name)
+                .collect(Collectors.joining(","));
+
 
         RenderedMailMessage mailMessage = new RenderedMailMessage();
-        mailMessage.setMailMessageHeaders(mailHeaders);
-        mailMessage.setRenderedTemplates(renderedTemplateMap);
+
+        try {
+            MailHeadersTemplate headersTemplate = messageResourcesService.findMailMessageHeaders(message, locale);
+            RenderedMailHeaders renderedMailHeaders = renderMailHeaders(headersTemplate, locale, contextObjects);
+            mailMessage.setRenderedHeaders(renderedMailHeaders);
+        } catch (MessageRenderingException e) {
+            String errorMessage = MessageFormat.format("Could not render mail headers of message {0} for locale {1}",
+                    messageName, locale.toString());
+            throw new MessageRenderingException(errorMessage, e);
+        } catch (NoMailHeadersTemplateFoundException e) {
+            String errorMessage = MessageFormat.format("Could not find mail headers template of message {0} for locale {1}",
+                    messageName, locale.toString());
+            throw new MessageRenderingException(errorMessage, e);
+        }
+
+
+        List<MessageRenderingException> templateRenderingExceptions = new ArrayList<>();
+        for (RenderingOption renderingOption : renderingOptions) {
+            try {
+                RenderedTemplate renderedTemplate = renderTemplate(message, renderingOption, locale, contextObjects, renderingMedia);
+                mailMessage.getRenderedTemplates().put(renderingOption, renderedTemplate);
+            } catch (MessageRenderingException e) {
+                templateRenderingExceptions.add(e);
+            }
+        }
+
+        if (!acceptAnyRenderedTemplate && !templateRenderingExceptions.isEmpty()) {
+            String errorMessage = MessageFormat.format("Could not render all templates of message {0} for locale {1} and options {2}",
+                    messageName, locale.toString(), optionsNames);
+            throw new MultipleRenderingErrorsException(errorMessage, templateRenderingExceptions);
+        } else if (mailMessage.getRenderedTemplates().isEmpty()) {
+            String errorMessage = MessageFormat.format("Could not render any templates of message {0} for locale {1} and options {2}",
+                    messageName, locale.toString(), optionsNames);
+            throw new MultipleRenderingErrorsException(errorMessage, templateRenderingExceptions);
+        }
+
         return mailMessage;
     }
 
-    private Optional<RenderedTemplate> tryRenderTemplate(DispatcherMessage message, DispatchingOption dispatchingOption, List<Locale> acceptedLocales, List<TemplateContextObject> templateContextObjects, RenderingType renderingType) {
-        for (Locale locale : acceptedLocales) {
-            try {
-                RenderedTemplate renderedTemplate = renderTemplate(message, dispatchingOption, locale, templateContextObjects, renderingType);
-                return Optional.of(renderedTemplate);
-            } catch (Exception e) {
-                // Try next locale
-            }
-        }
-        return Optional.empty();
-    }
 
-    private boolean isMailDispatching(DispatchingOption dispatchingOption) {
-        return dispatchingOption.equals(DispatchingOption.MAIL_HTML)
-                || dispatchingOption.equals(DispatchingOption.MAIL_TEXT);
-    }
-
-
-    private Stream<RenderedTemplate> streamRenderedTemplatesForLocale(DispatcherMessage dispatcherMessage, Locale locale, DispatchingOption dispatchingOption, List<TemplateContextObject> templateContextObjects, RenderingType renderingType) {
-        return messageResourcesService.streamVelocityTemplatePaths(dispatcherMessage, dispatchingOption, locale)
-                .map(path -> this.tryStreamRenderedTemplateContent(path, locale, templateContextObjects, renderingType))
+    private Stream<RenderedTemplate> streamRenderedTemplatesForLocale(DispatcherMessage dispatcherMessage, Locale locale, RenderingOption renderingOption, List<TemplateContextObject> templateContextObjects, RenderingMedia renderingMedia) {
+        return messageResourcesService.streamVelocityTemplatePaths(dispatcherMessage, renderingOption, locale)
+                .map(path -> this.tryStreamRenderedTemplateContent(path, locale, templateContextObjects, renderingMedia))
                 .filter(Optional::isPresent)
                 .map(Optional::get);
     }
@@ -298,8 +352,8 @@ public class MessageRendererService implements MessageRenderer {
     }
 
 
-    private Optional<RenderedTemplate> tryStreamRenderedTemplateContent(Path relativePath, Locale locale, List<TemplateContextObject> templateContextObjects, RenderingType renderingType) {
-        VelocityContext velocityContext = this.createVelocityContext(templateContextObjects, locale, renderingType);
+    private Optional<RenderedTemplate> tryStreamRenderedTemplateContent(Path relativePath, Locale locale, List<TemplateContextObject> templateContextObjects, RenderingMedia renderingMedia) {
+        VelocityContext velocityContext = this.createVelocityContext(templateContextObjects, locale, renderingMedia);
 
         return tryLoadVelocityTemplate(velocityEngine, relativePath)
                 .map(template -> this.renderTemplate(template, velocityContext));
@@ -365,7 +419,7 @@ public class MessageRendererService implements MessageRenderer {
         }
     }
 
-    private VelocityContext createVelocityContext(List<TemplateContextObject> templateContexts, Locale locale, RenderingType renderingType) {
+    private VelocityContext createVelocityContext(List<TemplateContextObject> templateContexts, Locale locale, RenderingMedia renderingMedia) {
         VelocityContext context = new VelocityContext();
 
         templateContexts.stream()
@@ -377,7 +431,7 @@ public class MessageRendererService implements MessageRenderer {
         dateTool.configure(dateToolConfig);
         context.put("date", dateTool);
 
-        TemplateResourcesTool templateResourcesTool = new TemplateResourcesTool(renderingType, referencedResourceProvider);
+        TemplateResourcesTool templateResourcesTool = new TemplateResourcesTool(renderingMedia, referencedResourceProvider);
         context.put(RESOURCE_TOOL_CONTEXT_KEY, templateResourcesTool);
 
         return context;

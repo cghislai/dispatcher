@@ -1,15 +1,16 @@
 package com.charlyghislain.dispatcher.management.service;
 
 import com.charlyghislain.dispatcher.api.context.TemplateContextObject;
-import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
 import com.charlyghislain.dispatcher.api.exception.DispatcherException;
+import com.charlyghislain.dispatcher.api.exception.MessageRenderingException;
 import com.charlyghislain.dispatcher.api.exception.NoMailHeadersTemplateFoundException;
 import com.charlyghislain.dispatcher.api.exception.NoTemplateFoundException;
 import com.charlyghislain.dispatcher.api.header.MailHeadersTemplate;
 import com.charlyghislain.dispatcher.api.message.DispatcherMessage;
 import com.charlyghislain.dispatcher.api.rendering.RenderedMailHeaders;
 import com.charlyghislain.dispatcher.api.rendering.RenderedTemplate;
-import com.charlyghislain.dispatcher.api.rendering.RenderingType;
+import com.charlyghislain.dispatcher.api.rendering.RenderingMedia;
+import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
 import com.charlyghislain.dispatcher.api.service.MessageRenderer;
 import com.charlyghislain.dispatcher.api.service.MessageResourcesService;
 import com.charlyghislain.dispatcher.management.api.error.DispatcherWebError;
@@ -32,27 +33,27 @@ public class MultiLocaleMessageService {
     @Inject
     private MessageResourcesService messageResourcesService;
 
-    public StreamingOutput streamMessageTemplateForFirstMatchingLanguage(List<Locale> acceptableLanguages, DispatcherMessage dispatcherMessage, DispatchingOption dispatchingOption) {
+    public StreamingOutput streamMessageTemplateForFirstMatchingLanguage(List<Locale> acceptableLanguages, DispatcherMessage dispatcherMessage, RenderingOption renderingOption) {
         for (Locale locale : acceptableLanguages) {
             try {
-                InputStream templateStream = messageRenderer.streamNonRenderedTemplate(dispatcherMessage, dispatchingOption, locale);
+                InputStream templateStream = messageRenderer.streamNonRenderedTemplate(dispatcherMessage, renderingOption, locale);
                 return this.streamingService.streamOutput(templateStream);
-            } catch (NoTemplateFoundException e) {
+            } catch (MessageRenderingException e) {
                 // try next language
             }
         }
         throw new DispatcherWebException(DispatcherWebError.TEMPLATE_NOT_FOUND, "No template found for the provided languages");
     }
 
-    public StreamingOutput streamRenderedExampleTemplateForFirstMatchingLanguage(List<Locale> acceptableLanguages, DispatcherMessage dispatcherMessage, DispatchingOption dispatchingOption, List<TemplateContextObject> templateContextObjects) throws DispatcherException {
-        RenderedTemplate renderedTemplate = this.getRenderedExampleTemplateForFirstMatchingLanguage(acceptableLanguages, dispatcherMessage, dispatchingOption, templateContextObjects, RenderingType.WEB);
+    public StreamingOutput streamRenderedExampleTemplateForFirstMatchingLanguage(List<Locale> acceptableLanguages, DispatcherMessage dispatcherMessage, RenderingOption renderingOption, List<TemplateContextObject> templateContextObjects) throws DispatcherException {
+        RenderedTemplate renderedTemplate = this.getRenderedExampleTemplateForFirstMatchingLanguage(acceptableLanguages, dispatcherMessage, renderingOption, templateContextObjects, RenderingMedia.WEB_PAGE);
         return this.streamingService.streamOutput(renderedTemplate.getContentStream());
     }
 
-    public RenderedTemplate getRenderedExampleTemplateForFirstMatchingLanguage(List<Locale> acceptableLanguages, DispatcherMessage dispatcherMessage, DispatchingOption dispatchingOption, List<TemplateContextObject> templateContextObjects, RenderingType renderingType) throws DispatcherException {
+    public RenderedTemplate getRenderedExampleTemplateForFirstMatchingLanguage(List<Locale> acceptableLanguages, DispatcherMessage dispatcherMessage, RenderingOption renderingOption, List<TemplateContextObject> templateContextObjects, RenderingMedia renderingMedia) throws DispatcherException {
         for (Locale locale : acceptableLanguages) {
             try {
-                return messageRenderer.renderTemplate(dispatcherMessage, dispatchingOption, locale, templateContextObjects, renderingType);
+                return messageRenderer.renderTemplate(dispatcherMessage, renderingOption, locale, templateContextObjects, renderingMedia);
             } catch (NoTemplateFoundException e) {
                 // try next language
             }
@@ -76,7 +77,7 @@ public class MultiLocaleMessageService {
             try {
                 MailHeadersTemplate mailMessageHeaders = messageResourcesService.findMailMessageHeaders(dispatcherMessage, locale);
                 return messageRenderer.renderMailHeaders(mailMessageHeaders, locale, templateContextObjects);
-            } catch (NoMailHeadersTemplateFoundException e) {
+            } catch (NoMailHeadersTemplateFoundException | MessageRenderingException e) {
                 // try next language
             }
         }

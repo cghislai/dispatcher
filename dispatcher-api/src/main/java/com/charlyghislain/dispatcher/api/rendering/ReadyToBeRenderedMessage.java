@@ -1,96 +1,93 @@
 package com.charlyghislain.dispatcher.api.rendering;
 
 import com.charlyghislain.dispatcher.api.context.TemplateContextObject;
-import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
 import com.charlyghislain.dispatcher.api.header.MailHeadersTemplate;
 import com.charlyghislain.dispatcher.api.message.DispatcherMessage;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import javax.validation.constraints.NotNull;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
+/**
+ * A message ready to be rendered.
+ *
+ * @see ReadyToBeRenderedMessageBuilder
+ * @see com.charlyghislain.dispatcher.service.MessageRendererService#renderMessage(com.charlyghislain.dispatcher.api.rendering.ReadyToBeRenderedMessage)
+ */
 public class ReadyToBeRenderedMessage {
 
     @NotNull
-    private DispatcherMessage message;
+    private final DispatcherMessage message;
     @NotNull
-    private List<Locale> acceptedLocales;
+    private final List<Locale> acceptedLocales = new ArrayList<>();
     @NotNull
-    private List<TemplateContextObject> contextObjects;
+    private final List<TemplateContextObject> contextObjects = new ArrayList<>();
     @NotNull
-    private Set<DispatchingOption> dispatchingOptions;
+    private final List<DispatchingRenderingOption> dispatchingRenderingOptionsByOrderOfPreference = new ArrayList<>();
     @NotNull
-    private Set<String> referencedResources = new HashSet<>();
+    private final Set<String> referencedResources = new HashSet<>();
     @NotNull
-    private RenderingType renderingType = RenderingType.MAIL;
+    private RenderingMedia renderingMedia = RenderingMedia.NORMAL;
+    /**
+     * If true, rendering will fail if any of the dispatching option preferences fail.
+     */
+    private boolean requireAllDispatchingOptionToRender;
+//
+//    @Nullable
+//    private MailHeadersTemplate mailHeadersTemplate;
 
-    @Nullable
-    private MailHeadersTemplate mailHeadersTemplate;
-
-
-    public MailHeadersTemplate getMailHeadersTemplate() {
-        return mailHeadersTemplate;
-    }
-
-    public ReadyToBeRenderedMessage setMailHeadersTemplate(MailHeadersTemplate mailHeadersTemplate) {
-        this.mailHeadersTemplate = mailHeadersTemplate;
-        return this;
-    }
-
-    public List<Locale> getAcceptedLocales() {
-        return acceptedLocales;
-    }
-
-    public ReadyToBeRenderedMessage setAcceptedLocales(List<Locale> acceptedLocales) {
-        this.acceptedLocales = acceptedLocales;
-        return this;
-    }
-
-    public List<TemplateContextObject> getContextObjects() {
-        return contextObjects;
-    }
-
-    public ReadyToBeRenderedMessage setContextObjects(List<TemplateContextObject> contextObjects) {
-        this.contextObjects = contextObjects;
-        return this;
-    }
-
-    public Set<DispatchingOption> getDispatchingOptions() {
-        return dispatchingOptions;
-    }
-
-    public ReadyToBeRenderedMessage setDispatchingOptions(Set<DispatchingOption> dispatchingOptions) {
-        this.dispatchingOptions = dispatchingOptions;
-        return this;
+    /**
+     * @see {@link ReadyToBeRenderedMessageBuilder}
+     */
+    ReadyToBeRenderedMessage(DispatcherMessage message) {
+        this.message = message;
     }
 
     public DispatcherMessage getMessage() {
         return message;
     }
 
-    public ReadyToBeRenderedMessage setMessage(DispatcherMessage message) {
-        this.message = message;
-        return this;
+
+    public List<Locale> getAcceptedLocales() {
+        return acceptedLocales;
     }
+
+
+    public List<TemplateContextObject> getContextObjects() {
+        return contextObjects;
+    }
+
 
     public Set<String> getReferencedResources() {
         return referencedResources;
     }
 
-    public ReadyToBeRenderedMessage setReferencedResources(Set<String> referencedResources) {
-        this.referencedResources = referencedResources;
-        return this;
+
+    public RenderingMedia getRenderingMedia() {
+        return renderingMedia;
     }
 
-    public RenderingType getRenderingType() {
-        return renderingType;
+    public void setRenderingMedia(RenderingMedia renderingMedia) {
+        this.renderingMedia = renderingMedia;
+    }
+//
+//    public MailHeadersTemplate getMailHeadersTemplate() {
+//        return mailHeadersTemplate;
+//    }
+//
+//    public void setMailHeadersTemplate(MailHeadersTemplate mailHeadersTemplate) {
+//        this.mailHeadersTemplate = mailHeadersTemplate;
+//    }
+
+    public List<DispatchingRenderingOption> getDispatchingRenderingOptionsByOrderOfPreference() {
+        return dispatchingRenderingOptionsByOrderOfPreference;
     }
 
-    public ReadyToBeRenderedMessage setRenderingType(RenderingType renderingType) {
-        this.renderingType = renderingType;
-        return this;
+    public boolean isRequireAllDispatchingOptionToRender() {
+        return requireAllDispatchingOptionToRender;
+    }
+
+    public void setRequireAllDispatchingOptionToRender(boolean requireAllDispatchingOptionToRender) {
+        this.requireAllDispatchingOptionToRender = requireAllDispatchingOptionToRender;
     }
 }

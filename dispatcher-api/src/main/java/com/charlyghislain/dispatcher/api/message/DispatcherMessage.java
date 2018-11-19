@@ -1,6 +1,6 @@
 package com.charlyghislain.dispatcher.api.message;
 
-import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
+import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import javax.validation.constraints.NotNull;
@@ -24,7 +24,7 @@ public class DispatcherMessage {
     @NotNull
     private String name;
     @NotNull
-    private Set<DispatchingOption> dispatchingOptions;
+    private Set<RenderingOption> renderingOptions;
     @NotNull
     private String description;
     @NotNull
@@ -62,12 +62,12 @@ public class DispatcherMessage {
         this.name = name;
     }
 
-    public Set<DispatchingOption> getDispatchingOptions() {
-        return dispatchingOptions;
+    public Set<RenderingOption> getRenderingOptions() {
+        return renderingOptions;
     }
 
-    public void setDispatchingOptions(Set<DispatchingOption> dispatchingOptions) {
-        this.dispatchingOptions = dispatchingOptions;
+    public void setRenderingOptions(Set<RenderingOption> renderingOptions) {
+        this.renderingOptions = renderingOptions;
     }
 
     public String getDescription() {
@@ -124,7 +124,7 @@ public class DispatcherMessage {
     public String toString() {
         return "DispatcherMessage{" +
                 "name='" + name + '\'' +
-                ", dispatchingOptions=" + dispatchingOptions +
+                ", renderingOptions=" + renderingOptions +
                 ", compositionItem=" + compositionItem +
                 '}';
     }

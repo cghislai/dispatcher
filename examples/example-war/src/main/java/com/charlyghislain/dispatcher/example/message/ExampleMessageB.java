@@ -1,6 +1,6 @@
 package com.charlyghislain.dispatcher.example.message;
 
-import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
+import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
 import com.charlyghislain.dispatcher.api.header.MailHeaders;
 import com.charlyghislain.dispatcher.api.message.MessageDefinition;
 import com.charlyghislain.dispatcher.example.template.AppContext;
@@ -8,7 +8,7 @@ import com.charlyghislain.dispatcher.example.template.RequestContext;
 
 @MessageDefinition(name = "test/message-b", description = "Another example",
         templateContexts = {AppContext.class, RequestContext.class},
-        dispatchingOptions = {DispatchingOption.MAIL_HTML},
+        dispatchingOptions = {RenderingOption.LONG_HTML},
         header = HeaderWithHeaderAndFooterMessage.class,
         footer = ExampleFooterMessage.class
 )

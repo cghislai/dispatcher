@@ -1,6 +1,6 @@
 package com.charlyghislain.dispatcher.api.header;
 
-public class SmsHeadersTemplate implements MessageHeaders {
+public class PhoneHeadersTemplate implements MessageHeaders {
 
     private String from;
     private String to;
@@ -9,7 +9,7 @@ public class SmsHeadersTemplate implements MessageHeaders {
         return from;
     }
 
-    public SmsHeadersTemplate setFrom(String from) {
+    public PhoneHeadersTemplate setFrom(String from) {
         this.from = from;
         return this;
     }
@@ -18,7 +18,7 @@ public class SmsHeadersTemplate implements MessageHeaders {
         return to;
     }
 
-    public SmsHeadersTemplate setTo(String to) {
+    public PhoneHeadersTemplate setTo(String to) {
         this.to = to;
         return this;
     }

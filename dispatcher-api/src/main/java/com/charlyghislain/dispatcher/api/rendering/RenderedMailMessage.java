@@ -1,47 +1,52 @@
 package com.charlyghislain.dispatcher.api.rendering;
 
-import com.charlyghislain.dispatcher.api.message.MailAttachment;
 import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
+import com.charlyghislain.dispatcher.api.message.MailAttachment;
 
 import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class RenderedMailMessage {
+public class RenderedMailMessage implements RenderedMessageDispatchingOption {
 
     @NotNull
-    private RenderedMailHeaders mailMessageHeaders;
-    @NotNull
-    @Size(min = 1)
-    private Map<DispatchingOption, RenderedTemplate> renderedTemplates;
+    private RenderedMailHeaders renderedHeaders;
     @NotNull
     private List<MailAttachment> mailAttachments = new ArrayList<>();
+    @NotNull
+    private Map<RenderingOption, RenderedTemplate> renderedTemplates;
 
-    public RenderedMailHeaders getMailMessageHeaders() {
-        return mailMessageHeaders;
+
+    @Override
+    public DispatchingOption getDispatchingOption() {
+        return DispatchingOption.MAIL;
     }
 
-    public RenderedMailMessage setMailMessageHeaders(RenderedMailHeaders mailMessageHeaders) {
-        this.mailMessageHeaders = mailMessageHeaders;
-        return this;
+
+    @Override
+    public RenderedMailHeaders getRenderedHeaders() {
+        return renderedHeaders;
     }
 
-    public Map<DispatchingOption, RenderedTemplate> getRenderedTemplates() {
-        return renderedTemplates;
-    }
-
-    public void setRenderedTemplates(Map<DispatchingOption, RenderedTemplate> renderedTemplates) {
-        this.renderedTemplates = renderedTemplates;
+    public void setRenderedHeaders(RenderedMailHeaders renderedHeaders) {
+        this.renderedHeaders = renderedHeaders;
     }
 
     public List<MailAttachment> getMailAttachments() {
         return mailAttachments;
     }
 
-    public RenderedMailMessage setMailAttachments(List<MailAttachment> mailAttachments) {
+    public void setMailAttachments(List<MailAttachment> mailAttachments) {
         this.mailAttachments = mailAttachments;
-        return this;
+    }
+
+    @Override
+    public Map<RenderingOption, RenderedTemplate> getRenderedTemplates() {
+        return renderedTemplates;
+    }
+
+    public void setRenderedTemplates(Map<RenderingOption, RenderedTemplate> renderedTemplates) {
+        this.renderedTemplates = renderedTemplates;
     }
 }

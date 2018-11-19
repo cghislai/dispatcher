@@ -6,5 +6,14 @@ import com.charlyghislain.dispatcher.api.rendering.RenderedMessage;
 
 public interface MessageDispatcher {
 
-    DispatchedMessage dispatchMessage(RenderedMessage renderedMessage);
+    /**
+     * Dispatchs the message and returns an aggregated result.
+     *
+     * @param renderedMessage              a rendered message.
+     * @param acceptFirstDispatchingOption when true, if multiple dispatching options have been rendered, they will be
+     *                                     iterated by order of preference until dispatching succeeds. The returned DispatchedMessage
+     *                                     may not contain a result for every DispatchingOption provided.
+     * @return a DispatchedMessage containing the dispatching outcome.
+     */
+    DispatchedMessage dispatchMessage(RenderedMessage renderedMessage, boolean acceptFirstDispatchingOption);
 }

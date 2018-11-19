@@ -1,7 +1,7 @@
 package com.charlyghislain.dispatcher.service;
 
 import com.charlyghislain.dispatcher.api.configuration.ConfigConstants;
-import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
+import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
 import com.charlyghislain.dispatcher.api.dispatching.DispatchingResult;
 import com.charlyghislain.dispatcher.api.exception.DispatcherException;
 import com.charlyghislain.dispatcher.api.exception.DispatcherRuntimeException;
@@ -67,10 +67,11 @@ public class MailDispatcherService {
     @Inject
     private MessageResourcesService messageResourcesService;
 
+
     public Set<DispatchingResult> dispatchMessages(RenderedMailMessage renderedMailMessage) {
-        Map<DispatchingOption, RenderedTemplate> renderedTemplates = renderedMailMessage.getRenderedTemplates();
-        boolean hasTextTemplate = renderedTemplates.containsKey(DispatchingOption.MAIL_TEXT);
-        boolean hasHtmlTemplate = renderedTemplates.containsKey(DispatchingOption.MAIL_HTML);
+        Map<RenderingOption, RenderedTemplate> renderedTemplates = renderedMailMessage.getRenderedTemplates();
+        boolean hasTextTemplate = renderedTemplates.containsKey(RenderingOption.LONG_TEXT);
+        boolean hasHtmlTemplate = renderedTemplates.containsKey(RenderingOption.LONG_HTML);
 
         if (!hasTextTemplate && !hasHtmlTemplate) {
             throw new DispatcherRuntimeException("No rendered template to dispatch by mail");
@@ -83,21 +84,21 @@ public class MailDispatcherService {
             String messageId = this.sendMail(mimeMessage);
 
             if (hasHtmlTemplate) {
-                DispatchingResult successResult = createSuccessResult(messageId, DispatchingOption.MAIL_HTML);
+                DispatchingResult successResult = createSuccessResult(messageId, RenderingOption.LONG_HTML);
                 dispatchingResults.add(successResult);
             }
             if (hasTextTemplate) {
-                DispatchingResult successResult = createSuccessResult(messageId, DispatchingOption.MAIL_TEXT);
+                DispatchingResult successResult = createSuccessResult(messageId, RenderingOption.LONG_TEXT);
                 dispatchingResults.add(successResult);
             }
 
         } catch (DispatcherException e) {
             if (hasHtmlTemplate) {
-                DispatchingResult errorResult = createErrorResult(DispatchingOption.MAIL_HTML, e);
+                DispatchingResult errorResult = createErrorResult(RenderingOption.LONG_HTML, e);
                 dispatchingResults.add(errorResult);
             }
             if (hasTextTemplate) {
-                DispatchingResult errorResult = createErrorResult(DispatchingOption.MAIL_TEXT, e);
+                DispatchingResult errorResult = createErrorResult(RenderingOption.LONG_TEXT, e);
                 dispatchingResults.add(errorResult);
             }
         }
@@ -105,27 +106,27 @@ public class MailDispatcherService {
     }
 
     public MimeMessage createMimeMessage(RenderedMailMessage renderedMailMessage) throws DispatcherException {
-        RenderedMailHeaders renderedHeaders = renderedMailMessage.getMailMessageHeaders();
-        Map<DispatchingOption, RenderedTemplate> renderedTemplates = renderedMailMessage.getRenderedTemplates();
+        Map<RenderingOption, RenderedTemplate> renderedTemplates = renderedMailMessage.getRenderedTemplates();
         List<MailAttachment> mailAttachments = renderedMailMessage.getMailAttachments();
-        boolean hasTextTemplate = renderedTemplates.containsKey(DispatchingOption.MAIL_TEXT);
-        boolean hasHtmlTemplate = renderedTemplates.containsKey(DispatchingOption.MAIL_HTML);
+        RenderedMailHeaders renderedHeaders = renderedMailMessage.getRenderedHeaders();
+        boolean hasTextTemplate = renderedTemplates.containsKey(RenderingOption.LONG_TEXT);
+        boolean hasHtmlTemplate = renderedTemplates.containsKey(RenderingOption.LONG_HTML);
 
 
         MimeMessage mimeMessage = createMimeMessageHeaders(renderedHeaders);
-        MimeMultipart  multipart = new MimeMultipart();
+        MimeMultipart multipart = new MimeMultipart();
 
         try {
             multipart.setSubType("alternative");
             if (hasTextTemplate) {
-                RenderedTemplate renderedTemplate = renderedTemplates.get(DispatchingOption.MAIL_TEXT);
+                RenderedTemplate renderedTemplate = renderedTemplates.get(RenderingOption.LONG_TEXT);
                 InputStream contentStream = renderedTemplate.getContentStream();
                 BodyPart textBodyPart = this.createTextBodyPart(contentStream);
                 multipart.addBodyPart(textBodyPart);
             }
 
             if (hasHtmlTemplate) {
-                RenderedTemplate renderedTemplate = renderedTemplates.get(DispatchingOption.MAIL_HTML);
+                RenderedTemplate renderedTemplate = renderedTemplates.get(RenderingOption.LONG_HTML);
                 InputStream contentStream = renderedTemplate.getContentStream();
                 BodyPart htmlBodyPart = this.createHtmlBodyPart(contentStream);
                 multipart.addBodyPart(htmlBodyPart);
@@ -290,9 +291,9 @@ public class MailDispatcherService {
     }
 
 
-    private DispatchingResult createSuccessResult(String messageId, DispatchingOption dispatchingOption) {
+    private DispatchingResult createSuccessResult(String messageId, RenderingOption renderingOption) {
         DispatchingResult dispatchingResult = new DispatchingResult();
-        dispatchingResult.setDispatchingOption(dispatchingOption);
+        dispatchingResult.setRenderingOption(renderingOption);
         dispatchingResult.setSuccess(true);
         dispatchingResult.setDispatchedTime(LocalDateTime.now());
         dispatchingResult.setMessageId(messageId);
@@ -300,10 +301,10 @@ public class MailDispatcherService {
     }
 
 
-    private DispatchingResult createErrorResult(DispatchingOption dispatchingOption, Exception error) {
+    private DispatchingResult createErrorResult(RenderingOption renderingOption, Exception error) {
         String message = error.getMessage();
         DispatchingResult dispatchingResult = new DispatchingResult();
-        dispatchingResult.setDispatchingOption(dispatchingOption);
+        dispatchingResult.setRenderingOption(renderingOption);
         dispatchingResult.setSuccess(false);
         dispatchingResult.setError(error);
         dispatchingResult.setErrorMessage(message);
