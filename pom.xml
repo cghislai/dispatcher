@@ -7,7 +7,7 @@
     <groupId>com.charlyghislain.dispatcher</groupId>
     <artifactId>dispatcher-parent</artifactId>
     <packaging>pom</packaging>
-    <version>2.0.0</version>
+    <version>2.0.1-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>A message templating and dispatcher</description>
@@ -62,13 +62,13 @@
             <dependency>
                 <groupId>com.charlyghislain.dispatcher</groupId>
                 <artifactId>dispatcher-api</artifactId>
-                <version>2.0.0</version>
+                <version>2.0.1-SNAPSHOT</version>
                 <scope>provided</scope>
             </dependency>
             <dependency>
                 <groupId>com.charlyghislain.dispatcher</groupId>
                 <artifactId>dispatcher-management-api</artifactId>
-                <version>2.0.0</version>
+                <version>2.0.1-SNAPSHOT</version>
                 <scope>provided</scope>
             </dependency>
 
