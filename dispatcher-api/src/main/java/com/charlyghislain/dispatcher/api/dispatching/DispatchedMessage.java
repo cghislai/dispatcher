@@ -26,7 +26,7 @@ public class DispatchedMessage {
                 .filter(r -> !r.isSuccess())
                 .map(DispatchingResult::getError)
                 .collect(Collectors.toList());
-        return new MultipleDispatchingErrorsException("Failed to dospatch some messages", errors);
+        return new MultipleDispatchingErrorsException("Failed to dispatch some messages", errors);
     }
 
     public List<DispatchingResult> getDispatchingResultList() {
