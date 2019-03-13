@@ -3,12 +3,23 @@ package com.charlyghislain.dispatcher.service;
 import com.charlyghislain.dispatcher.api.configuration.ConfigConstants;
 import com.charlyghislain.dispatcher.api.context.TemplateContextObject;
 import com.charlyghislain.dispatcher.api.dispatching.DispatchingOption;
-import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
-import com.charlyghislain.dispatcher.api.exception.*;
+import com.charlyghislain.dispatcher.api.exception.DispatcherRuntimeException;
+import com.charlyghislain.dispatcher.api.exception.MessageRenderingException;
+import com.charlyghislain.dispatcher.api.exception.MultipleRenderingErrorsException;
+import com.charlyghislain.dispatcher.api.exception.NoMailHeadersTemplateFoundException;
+import com.charlyghislain.dispatcher.api.exception.NoTemplateFoundException;
 import com.charlyghislain.dispatcher.api.header.MailHeadersTemplate;
 import com.charlyghislain.dispatcher.api.message.DispatcherMessage;
 import com.charlyghislain.dispatcher.api.message.ReferencedResource;
-import com.charlyghislain.dispatcher.api.rendering.*;
+import com.charlyghislain.dispatcher.api.rendering.DispatchingRenderingOption;
+import com.charlyghislain.dispatcher.api.rendering.ReadyToBeRenderedMessage;
+import com.charlyghislain.dispatcher.api.rendering.RenderedMailHeaders;
+import com.charlyghislain.dispatcher.api.rendering.RenderedMailMessage;
+import com.charlyghislain.dispatcher.api.rendering.RenderedMessage;
+import com.charlyghislain.dispatcher.api.rendering.RenderedMessageDispatchingOption;
+import com.charlyghislain.dispatcher.api.rendering.RenderedTemplate;
+import com.charlyghislain.dispatcher.api.rendering.RenderingMedia;
+import com.charlyghislain.dispatcher.api.rendering.RenderingOption;
 import com.charlyghislain.dispatcher.api.service.MessageRenderer;
 import com.charlyghislain.dispatcher.api.service.MessageResourcesService;
 import com.charlyghislain.dispatcher.mail.ReferencedResourceProvider;
@@ -36,13 +47,9 @@ import javax.validation.constraints.NotNull;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStreamWriter;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.io.SequenceInputStream;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -57,7 +64,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -361,27 +367,22 @@ public class MessageRendererService implements MessageRenderer {
     }
 
     private RenderedTemplate renderTemplate(Template velocityTemplate, VelocityContext velocityContext) {
-        PipedInputStream pipedInputStream = new PipedInputStream();
+        try (StringWriter stringWriter = new StringWriter()) {
+            velocityTemplate.merge(velocityContext, stringWriter);
+            stringWriter.close();
 
-        try (PipedOutputStream pipedOutputStream = new PipedOutputStream(pipedInputStream)) {
-            Writer writer = new OutputStreamWriter(pipedOutputStream);
+            StringBuffer buffer = stringWriter.getBuffer();
+            byte[] templateBytes = buffer.toString().getBytes(StandardCharsets.UTF_8);
+            InputStream inputStream = new ByteArrayInputStream(templateBytes);
+
+            TemplateResourcesTool templateResourcesTool = (TemplateResourcesTool) velocityContext.get(RESOURCE_TOOL_CONTEXT_KEY);
+            Set<ReferencedResource> referencedResources = templateResourcesTool.getReferencedResources();
+
 
             RenderedTemplate renderedTemplate = new RenderedTemplate();
-            renderedTemplate.setContentStream(pipedInputStream);
-            TemplateResourcesTool templateResourcesTool = (TemplateResourcesTool) velocityContext.get(RESOURCE_TOOL_CONTEXT_KEY);
-
-            return CompletableFuture.runAsync(() -> {
-                velocityTemplate.merge(velocityContext, writer);
-                try {
-                    writer.close();
-                } catch (IOException e) {
-                    throw new DispatcherRuntimeException("Failed to render template", e);
-                }
-            }).thenApply((a) -> {
-                Set<ReferencedResource> referencedResources = templateResourcesTool.getReferencedResources();
-                renderedTemplate.setReferencedResources(referencedResources);
-                return renderedTemplate;
-            }).join();
+            renderedTemplate.setContentStream(inputStream);
+            renderedTemplate.setReferencedResources(referencedResources);
+            return renderedTemplate;
         } catch (IOException e) {
             throw new DispatcherRuntimeException("Failed to render template", e);
         }
